@@ -1,0 +1,2152 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#ff6b6b">
+  <title>Jogo da Vida HPV</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            padding: 15px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .game-card {
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            line-height: 1.2;
+        }
+
+        @media (min-width: 768px) {
+            .game-title {
+                font-size: 3rem;
+            }
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        @media (min-width: 768px) {
+            .subtitle {
+                font-size: 1.3rem;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Media Controls */
+        .media-controls {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (min-width: 768px) {
+            .media-controls {
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+        }
+
+        .media-title {
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        @media (min-width: 768px) {
+            .media-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        .media-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .media-btn {
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #fff;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            min-height: 44px;
+            min-width: 140px;
+        }
+
+        @media (min-width: 768px) {
+            .media-btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+                border-radius: 10px;
+            }
+        }
+
+        .media-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        @media (min-width: 768px) {
+            .media-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            }
+        }
+
+        .media-btn.active {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .media-btn.inactive {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border-color: #c0392b;
+        }
+
+        /* Video Container */
+        .video-container {
+            margin: 15px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .video-container.show {
+            display: block;
+        }
+
+        #intro-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Roleta Styles */
+        .roulette-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .roulette-wheel {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 6px solid #333;
+            position: relative;
+            cursor: pointer;
+            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
+            background: conic-gradient(
+                #ff6b6b 0deg 60deg,
+                #4ecdc4 60deg 120deg,
+                #45b7d1 120deg 180deg,
+                #96ceb4 180deg 240deg,
+                #feca57 240deg 300deg,
+                #ff9ff3 300deg 360deg
+            );
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            touch-action: manipulation;
+        }
+
+        @media (min-width: 768px) {
+            .roulette-wheel {
+                width: 200px;
+                height: 200px;
+                border: 8px solid #333;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+        }
+
+        .roulette-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #333;
+            z-index: 10;
+        }
+
+        .roulette-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .spin-button {
+            margin-top: 15px;
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            touch-action: manipulation;
+            min-height: 44px;
+            min-width: 120px;
+        }
+
+        @media (min-width: 768px) {
+            .spin-button {
+                margin-top: 20px;
+                padding: 15px 30px;
+                font-size: 1.2rem;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+        }
+
+        .spin-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        @media (min-width: 768px) {
+            .spin-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            }
+        }
+
+        .spin-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Tabuleiro Styles */
+        .board-container {
+            margin: 15px 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (min-width: 768px) {
+            .board-container {
+                margin: 30px 0;
+                padding: 20px;
+                border-radius: 15px;
+            }
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            min-width: 280px;
+            padding: 10px;
+        }
+
+        @media (min-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(10, 1fr);
+                gap: 6px;
+                min-width: 400px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .game-board {
+                gap: 8px;
+                min-width: 800px;
+                padding: 20px;
+            }
+        }
+
+        .board-cell {
+            width: 35px;
+            height: 35px;
+            border: 2px solid #fff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            font-size: 0.6rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        @media (min-width: 480px) {
+            .board-cell {
+                width: 50px;
+                height: 50px;
+                font-size: 0.7rem;
+                border-radius: 8px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .board-cell {
+                width: 70px;
+                height: 70px;
+                border: 3px solid #fff;
+                border-radius: 10px;
+                font-size: 0.9rem;
+            }
+        }
+
+        .board-cell:active {
+            transform: scale(0.95);
+        }
+
+        @media (min-width: 768px) {
+            .board-cell:hover {
+                transform: scale(1.05);
+            }
+        }
+
+        .cell-start { background: #2ecc71; }
+        .cell-question { background: #3498db; }
+        .cell-challenge { background: #e74c3c; }
+        .cell-bonus { background: #f39c12; }
+        .cell-finish { background: #9b59b6; }
+        .cell-treasure { 
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #8b4513;
+            font-weight: bold;
+        }
+        .cell-mystery { 
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+        .cell-double { 
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .player-pin {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid #fff;
+            top: -6px;
+            z-index: 5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        @media (min-width: 480px) {
+            .player-pin {
+                width: 16px;
+                height: 16px;
+                top: -8px;
+                border: 2px solid #fff;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .player-pin {
+                width: 20px;
+                height: 20px;
+                top: -10px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            }
+        }
+
+        .player-1 { background: #ff6b6b; left: -10px; }
+        .player-2 { background: #4ecdc4; right: -10px; }
+        .player-3 { background: #45b7d1; left: 50%; transform: translateX(-50%); }
+        .player-4 { background: #96ceb4; bottom: -10px; top: auto; }
+
+        /* Power-ups Panel */
+        .powerups-panel {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid #f39c12;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        @media (min-width: 768px) {
+            .powerups-panel {
+                border-radius: 15px;
+                padding: 20px;
+                margin: 20px 0;
+                border: 3px solid #f39c12;
+                box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+            }
+        }
+
+        .powerups-title {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #8b4513;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 768px) {
+            .powerups-title {
+                font-size: 1.3rem;
+                margin-bottom: 15px;
+            }
+        }
+
+        .powerups-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        @media (min-width: 480px) {
+            .powerups-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .powerups-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 12px;
+            }
+        }
+
+        .powerup-item {
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            border: 2px solid #f39c12;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .powerup-item {
+                border-radius: 12px;
+                padding: 12px;
+                min-height: auto;
+            }
+        }
+
+        .powerup-item:active:not(.disabled) {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
+        }
+
+        @media (min-width: 768px) {
+            .powerup-item:hover:not(.disabled) {
+                transform: scale(1.05);
+                box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
+                border-color: #e67e22;
+            }
+        }
+
+        .powerup-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(200,200,200,0.7);
+        }
+
+        .powerup-item.active {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border-color: #27ae60;
+            animation: powerupGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes powerupGlow {
+            0% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.5); }
+            100% { box-shadow: 0 0 20px rgba(46, 204, 113, 0.8); }
+        }
+
+        .powerup-icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        @media (min-width: 768px) {
+            .powerup-icon {
+                font-size: 2.2rem;
+                margin-bottom: 8px;
+            }
+        }
+
+        .powerup-name {
+            font-weight: bold;
+            font-size: 0.7rem;
+            color: #333;
+            margin-bottom: 2px;
+            line-height: 1.1;
+        }
+
+        @media (min-width: 768px) {
+            .powerup-name {
+                font-size: 0.9rem;
+                margin-bottom: 3px;
+            }
+        }
+
+        .powerup-item.active .powerup-name {
+            color: white;
+        }
+
+        .powerup-cost {
+            font-size: 0.6rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        @media (min-width: 768px) {
+            .powerup-cost {
+                font-size: 0.8rem;
+                gap: 3px;
+            }
+        }
+
+        .powerup-item.active .powerup-cost {
+            color: #ecf0f1;
+        }
+
+        /* Players Panel */
+        .players-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+
+        .player-card.player-1 { border-left-color: #ff6b6b; }
+        .player-card.player-2 { border-left-color: #4ecdc4; }
+        .player-card.player-3 { border-left-color: #45b7d1; }
+        .player-card.player-4 { border-left-color: #96ceb4; }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .player-stats {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Coin Animation */
+        .coin-animation {
+            position: fixed;
+            font-size: 2rem;
+            color: #ffd700;
+            z-index: 1000;
+            pointer-events: none;
+            animation: coinFloat 2s ease-out forwards;
+        }
+
+        @keyframes coinFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) rotate(360deg);
+            }
+        }
+
+        /* Bomb Animation */
+        .bomb-animation {
+            position: fixed;
+            font-size: 3rem;
+            z-index: 1000;
+            pointer-events: none;
+            animation: bombExplode 1.5s ease-out forwards;
+        }
+
+        @keyframes bombExplode {
+            0% {
+                opacity: 1;
+                transform: scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.5);
+            }
+        }
+
+        /* Bonus Effects */
+        .bonus-effect {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: bonusPopup 2s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes bonusPopup {
+            0% { 
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% { 
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% { 
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1) translateY(-50px);
+            }
+        }
+
+        .powerup-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 1500;
+            animation: slideInRight 0.5s ease-out;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Question Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (min-width: 768px) {
+            .modal {
+                padding: 20px;
+            }
+            
+            .modal-content {
+                border-radius: 15px;
+                padding: 30px;
+                width: 90%;
+                max-height: 80vh;
+            }
+        }
+
+        .question-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .case-study {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 768px) {
+            .option-btn {
+                padding: 15px;
+                font-size: 1rem;
+            }
+        }
+
+        .option-btn:active {
+            border-color: #6366f1;
+            background: #f1f5f9;
+            transform: scale(0.98);
+        }
+
+        @media (min-width: 768px) {
+            .option-btn:hover {
+                border-color: #6366f1;
+                background: #f1f5f9;
+            }
+        }
+
+        .option-btn.selected {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .option-btn.correct {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .option-btn.incorrect {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .explanation {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            min-height: 44px;
+            min-width: 100px;
+        }
+
+        @media (min-width: 768px) {
+            .btn {
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5856eb;
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .game-info {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 10px;
+        }
+
+        .current-player {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .roulette-wheel {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .board-cell {
+                width: 50px;
+                height: 50px;
+                font-size: 0.7rem;
+            }
+            
+            .game-board {
+                min-width: 600px;
+            }
+            
+            .powerups-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <div class="game-card"><div id="welcome-screen">
+     <div class="header">
+      <h1 class="game-title" id="main-title">🎲 Jogo da Vida HPV 🎲</h1>
+      <p class="subtitle" id="main-subtitle">Aprenda sobre HPV jogando! Role a roleta, responda perguntas e use power-ups especiais.</p>
+     </div>
+     <div style="text-align: center;">
+      <div style="margin-bottom: 20px;"><label for="player1-name" style="display: block; margin-bottom: 10px; font-weight: bold; font-size: 0.9rem;">Nome do Jogador 1:</label> <input type="text" id="player1-name" placeholder="Jogador 1..." style="padding: 12px; border: 2px solid #ff6b6b; border-radius: 8px; font-size: 1rem; width: 100%; max-width: 280px; min-height: 44px; touch-action: manipulation; margin-bottom: 15px;"> <label for="player2-name" style="display: block; margin-bottom: 10px; font-weight: bold; font-size: 0.9rem;">Nome do Jogador 2:</label> <input type="text" id="player2-name" placeholder="Jogador 2..." style="padding: 12px; border: 2px solid #4ecdc4; border-radius: 8px; font-size: 1rem; width: 100%; max-width: 280px; min-height: 44px; touch-action: manipulation;">
+      </div><button class="btn btn-primary" id="start-game" onclick="startGame()"> <span id="start-button-text">🎮 Começar Jogo</span> </button>
+     </div>
+    </div><div id="game-screen" class="hidden">
+     <div class="header">
+      <h1 class="game-title" id="game-title">🎲 Jogo da Vida HPV 🎲</h1>
+     </div><div class="media-controls">
+      <div class="media-title">
+       🎬 Controles de Mídia
+      </div>
+      <div class="media-buttons"><button class="media-btn" id="video-toggle" onclick="toggleVideo()"> 📺 Mostrar Vídeo Educativo </button> <button class="media-btn" id="audio-toggle" onclick="toggleAudio()"> 🎵 Ligar Música </button> <button class="media-btn" id="sound-toggle" onclick="toggleSound()"> 🔊 Sons Ligados </button>
+      </div>
+     </div><div class="video-container" id="video-container">
+      <video id="intro-video" controls preload="auto">
+        <source src="1000006988.mp4" type="video/mp4">
+         Seu navegador não suporta vídeo HTML5.
+      </video>
+     </div><audio id="game-bgm" loop preload="auto"><source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
+     </audio><div class="game-info">
+      <div class="current-player" id="current-player">
+       Vez de: Jogador 1
+      </div>
+      <div style="margin-top: 10px;"><span>Posição: <strong id="player-position">0</strong></span> | <span>Acertos: <strong id="player-score">0</strong></span> | <span>💰 Moedas: <strong id="player-coins">0</strong></span>
+      </div>
+     </div><div class="powerups-panel">
+      <div class="powerups-title">
+       ⚡ LOJA DE POWER-UPS ⚡
+      </div>
+      <div class="powerups-grid">
+       <div class="powerup-item" id="shield-powerup" onclick="buyPowerup('shield')">
+        <div class="powerup-icon">
+         🛡️
+        </div>
+        <div class="powerup-name">
+         Escudo
+        </div>
+        <div class="powerup-cost">
+         💰 5 moedas
+        </div>
+       </div>
+       <div class="powerup-item" id="double-powerup" onclick="buyPowerup('double')">
+        <div class="powerup-icon">
+         ⚡
+        </div>
+        <div class="powerup-name">
+         Dobrar Moedas
+        </div>
+        <div class="powerup-cost">
+         💰 8 moedas
+        </div>
+       </div>
+       <div class="powerup-item" id="jump-powerup" onclick="buyPowerup('jump')">
+        <div class="powerup-icon">
+         🚀
+        </div>
+        <div class="powerup-name">
+         Super Pulo
+        </div>
+        <div class="powerup-cost">
+         💰 10 moedas
+        </div>
+       </div>
+       <div class="powerup-item" id="hint-powerup" onclick="buyPowerup('hint')">
+        <div class="powerup-icon">
+         💡
+        </div>
+        <div class="powerup-name">
+         Dica Extra
+        </div>
+        <div class="powerup-cost">
+         💰 6 moedas
+        </div>
+       </div>
+      </div>
+     </div><div class="roulette-container">
+      <div class="roulette-wheel" id="roulette-wheel">
+       <div class="roulette-pointer"></div>
+       <div class="roulette-center">
+        🎯
+       </div>
+      </div><button class="spin-button" id="spin-button" onclick="spinRoulette()"> 🎲 Girar Roleta </button>
+      <div id="spin-result" style="margin-top: 15px; font-weight: bold; font-size: 1.1rem;"></div>
+     </div><div class="board-container">
+      <div class="game-board" id="game-board"></div>
+     </div><div class="players-panel">
+      <div class="player-card player-1" id="player1-card">
+       <div class="player-name" id="player1-name-display">
+        Jogador 1
+       </div>
+       <div class="player-stats">
+        <div>
+         Posição: <span id="player1-position-display">0</span>/20
+        </div>
+        <div>
+         Perguntas: <span id="player1-questions-display">0</span>
+        </div>
+        <div>
+         Acertos: <span id="player1-correct-display">0</span>
+        </div>
+        <div>
+         💰 Moedas: <span id="player1-coins-display">0</span>
+        </div>
+       </div>
+       <div style="margin-top: 10px; font-size: 0.9rem;">
+        <div id="player1-active-powerups">
+         Power-ups Ativos: Nenhum
+        </div>
+       </div>
+      </div>
+      <div class="player-card player-2" id="player2-card">
+       <div class="player-name" id="player2-name-display">
+        Jogador 2
+       </div>
+       <div class="player-stats">
+        <div>
+         Posição: <span id="player2-position-display">0</span>/20
+        </div>
+        <div>
+         Perguntas: <span id="player2-questions-display">0</span>
+        </div>
+        <div>
+         Acertos: <span id="player2-correct-display">0</span>
+        </div>
+        <div>
+         💰 Moedas: <span id="player2-coins-display">0</span>
+        </div>
+       </div>
+       <div style="margin-top: 10px; font-size: 0.9rem;">
+        <div id="player2-active-powerups">
+         Power-ups Ativos: Nenhum
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><div id="results-screen" class="hidden">
+     <div class="header">
+      <h1 class="game-title">🏆 Fim de Jogo! 🏆</h1>
+      <div style="font-size: 1.2rem; margin: 20px 0;">
+       <div id="final-message">
+        Jogo finalizado!
+       </div>
+       <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+        <div style="background: rgba(255, 107, 107, 0.1); border: 2px solid #ff6b6b; border-radius: 10px; padding: 15px;">
+         <h3 style="color: #ff6b6b; margin: 0 0 10px 0;" id="player1-final-name">Jogador 1</h3>
+         <div>
+          <strong>Posição: <span id="player1-final-position">0</span>/20</strong>
+         </div>
+         <div>
+          <strong>Acertos: <span id="player1-final-score">0</span></strong>
+         </div>
+         <div>
+          <strong>💰 Moedas: <span id="player1-final-coins">0</span></strong>
+         </div>
+        </div>
+        <div style="background: rgba(78, 205, 196, 0.1); border: 2px solid #4ecdc4; border-radius: 10px; padding: 15px;">
+         <h3 style="color: #4ecdc4; margin: 0 0 10px 0;" id="player2-final-name">Jogador 2</h3>
+         <div>
+          <strong>Posição: <span id="player2-final-position">0</span>/20</strong>
+         </div>
+         <div>
+          <strong>Acertos: <span id="player2-final-score">0</span></strong>
+         </div>
+         <div>
+          <strong>💰 Moedas: <span id="player2-final-coins">0</span></strong>
+         </div>
+        </div>
+       </div>
+       <div style="margin-top: 20px; font-size: 1.5rem;">
+        <div id="winner-announcement">
+         🎉 Resultado Final 🎉
+        </div>
+       </div>
+      </div><button class="btn btn-primary" onclick="restartGame()"> 🔄 Jogar Novamente </button>
+     </div>
+    </div>
+   </div>
+  </div><div class="modal" id="question-modal">
+   <div class="modal-content">
+    <div class="question-header">
+     <h3 id="question-theme" style="color: #6366f1;">Pergunta sobre HPV</h3>
+    </div>
+    <div class="case-study" id="question-case">
+     <h4>Caso Clínico:</h4>
+     <p id="case-text"></p>
+    </div>
+    <div class="question-text" id="question-text"></div>
+    <div id="hint-section" class="hidden" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+     <h4 style="color: #856404;">💡 Dica:</h4>
+     <p id="hint-text" style="color: #856404; margin: 0;"></p>
+    </div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="explanation" id="explanation">
+     <h4>Explicação:</h4>
+     <p id="explanation-text"></p>
+    </div>
+    <div class="modal-buttons"><button class="btn btn-primary" id="continue-btn" onclick="continueGame()" disabled> Continuar </button>
+    </div>
+   </div>
+  </div>
+  <script>
+        // Quiz questions data with hints
+        const quizData = [
+            {
+                id: "q1",
+                tema: "Transmissão e Sintomas",
+                caso: "Caso de João (25 anos): João notou o surgimento de pequenas 'verrugas' na região genital. Ele só teve relações com preservativo.",
+                pergunta: "Como João pode ter contraído HPV, mesmo usando camisinha? O preservativo protege 100% da transmissão?",
+                hint: "Pense em áreas do corpo que não são cobertas pelo preservativo durante o contato íntimo.",
+                opcoes: {
+                    "A": "Sim, o preservativo protege 100%, então João deve ter contraído de outra forma, como contato com objetos.",
+                    "B": "Não, o HPV é transmitido pelo contato pele-a-pele em áreas não cobertas pelo preservativo, por isso a proteção não é total.",
+                    "C": "O HPV só pode ser transmitido pelo sêmen, o que indica que o preservativo rasgou ou foi mal utilizado.",
+                    "D": "É impossível, o diagnóstico de João está incorreto, pois o HPV exige penetração para ser transmitido."
+                },
+                resposta_correta: "B",
+                explicacao: "O HPV é transmitido primariamente pelo contato pele-a-pele ou mucosa-com-mucosa. Como o preservativo não cobre toda a área genital, a transmissão ainda é possível através do contato com a pele infectada na base do pênis, bolsa escrotal ou região perianal."
+            },
+            {
+                id: "q2",
+                tema: "Transmissão e Sintomas",
+                caso: "Caso de Maria (30 anos): Maria fez exames de rotina e o resultado deu positivo para HPV, mas ela não tem verrugas ou qualquer outro sintoma aparente.",
+                pergunta: "É possível ter o vírus HPV e não apresentar sintoma algum? O que esse resultado significa para a saúde de Maria?",
+                hint: "A maioria das infecções por HPV são silenciosas, sem sintomas visíveis.",
+                opcoes: {
+                    "A": "Não, a presença do vírus significa que as verrugas devem aparecer em breve.",
+                    "B": "Sim, a maioria das pessoas com HPV é assintomática, mas o vírus ainda pode ser transmitido e exige monitoramento.",
+                    "C": "O resultado significa que o corpo de Maria já eliminou o vírus e ela está imune.",
+                    "D": "Significa que ela não tem HPV de alto risco, apenas o de baixo risco que causa verrugas."
+                },
+                resposta_correta: "B",
+                explicacao: "A maioria (cerca de 80%) das pessoas que têm contato com o HPV é assintomática (infecção subclínica). O resultado positivo exige acompanhamento médico para monitorar se o vírus causará lesões precursoras, mesmo sem verrugas visíveis."
+            },
+            {
+                id: "q3",
+                tema: "Transmissão e Sintomas",
+                caso: "Caso de Pedro (40 anos): Pedro recebeu um diagnóstico de HPV de baixo risco. Ele está preocupado em passar o vírus para sua parceira, com quem vive há 10 anos.",
+                pergunta: "Se Pedro iniciar o tratamento para as lesões, ele se torna imune e não poderá mais transmitir o HPV? É possível se recontaminar?",
+                hint: "O tratamento remove lesões visíveis, mas considere se o vírus é completamente eliminado do corpo.",
+                opcoes: {
+                    "A": "Sim, o tratamento elimina o vírus completamente do corpo e confere imunidade permanente.",
+                    "B": "O tratamento elimina as lesões, mas o vírus pode permanecer. A recontaminação com outros tipos de HPV também é possível.",
+                    "C": "A parceira provavelmente já tem o vírus, então o tratamento de Pedro não é relevante para a transmissão.",
+                    "D": "Ele não poderá mais transmitir o HPV, mas pode ser recontaminado se não usar preservativo."
+                },
+                resposta_correta: "B",
+                explicacao: "O tratamento remove as lesões visíveis (verrugas ou lesões precursoras), mas não elimina o vírus do corpo. O vírus pode continuar ativo ou latente, e a pessoa não cria imunidade contra todos os tipos de HPV, podendo ser infectada novamente (recontaminação)."
+            },
+            {
+                id: "q4",
+                tema: "Transmissão e Sintomas",
+                caso: "Caso de Ana (22 anos): Ana está confusa. Ela ouviu dizer que o HPV é transmitido apenas por penetração vaginal ou anal.",
+                pergunta: "A transmissão do HPV pode ocorrer por beijo ou contato manual-genital? Quais são as formas de contágio além da relação sexual com penetração?",
+                hint: "O HPV é um vírus de contato que não necessita de fluidos corporais para transmissão.",
+                opcoes: {
+                    "A": "O HPV só é transmitido por penetração vaginal ou anal, outras formas de contato são seguras.",
+                    "B": "Sim, o HPV pode ser transmitido por sexo oral, contato manual-genital e até mesmo beijo, pois é um vírus de contato.",
+                    "C": "O beijo não transmite HPV, mas o sexo oral e contato manual-genital podem transmitir o vírus.",
+                    "D": "Apenas o sexo oral pode transmitir HPV além da penetração, o contato manual é seguro."
+                },
+                resposta_correta: "B",
+                explicacao: "O HPV pode ser transmitido através de qualquer contato íntimo pele-a-pele ou mucosa-com-mucosa, incluindo sexo oral, contato manual-genital e até mesmo beijo (especialmente para HPV oral). O vírus não requer penetração para ser transmitido."
+            }
+        ];
+
+        // Media state
+        let mediaState = {
+            videoVisible: false,
+            audioPlaying: false,
+            soundEnabled: true
+        };
+
+        // Game state
+        let players = [
+            {
+                id: 1,
+                name: '',
+                position: 0,
+                questionsAnswered: 0,
+                correctAnswers: 0,
+                coins: 0,
+                powerups: {
+                    shield: false,
+                    double: false,
+                    jump: false,
+                    hint: false
+                }
+            },
+            {
+                id: 2,
+                name: '',
+                position: 0,
+                questionsAnswered: 0,
+                correctAnswers: 0,
+                coins: 0,
+                powerups: {
+                    shield: false,
+                    double: false,
+                    jump: false,
+                    hint: false
+                }
+            }
+        ];
+
+        let gameState = {
+            isSpinning: false,
+            currentQuestion: null,
+            boardSize: 20,
+            specialCells: {},
+            currentPlayerIndex: 0,
+            gameStarted: false
+        };
+
+        let currentRecordCount = 0;
+
+        // Power-up costs
+        const powerupCosts = {
+            shield: 5,
+            double: 8,
+            jump: 10,
+            hint: 6
+        };
+
+        // Default configuration
+        const defaultConfig = {
+            game_title: "Jogo da Vida HPV",
+            subtitle: "Aprenda sobre HPV jogando!",
+            start_button_text: "Começar Jogo"
+        };
+
+        // Data handler for SDK
+        const dataHandler = {
+            onDataChanged(data) {
+                currentRecordCount = data.length;
+            }
+        };
+
+        // Element SDK implementation
+        const element = {
+            defaultConfig,
+            render: async (config) => {
+                const title = config.game_title || defaultConfig.game_title;
+                const subtitle = config.subtitle || defaultConfig.subtitle;
+                const startButtonText = config.start_button_text || defaultConfig.start_button_text;
+
+                document.getElementById('main-title').textContent = `🎲 ${title} 🎲`;
+                document.getElementById('main-subtitle').textContent = subtitle;
+                document.getElementById('start-button-text').textContent = `🎮 ${startButtonText}`;
+                
+                const gameTitle = document.getElementById('game-title');
+                if (gameTitle) {
+                    gameTitle.textContent = `🎲 ${title} 🎲`;
+                }
+            },
+            mapToCapabilities: (config) => ({
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            }),
+            mapToEditPanelValues: (config) => new Map([
+                ["game_title", config.game_title || defaultConfig.game_title],
+                ["subtitle", config.subtitle || defaultConfig.subtitle],
+                ["start_button_text", config.start_button_text || defaultConfig.start_button_text]
+            ])
+        };
+
+        // Media control functions
+        function toggleVideo() {
+            const videoContainer = document.getElementById('video-container');
+            const videoToggle = document.getElementById('video-toggle');
+            const video = document.getElementById('intro-video');
+            
+            mediaState.videoVisible = !mediaState.videoVisible;
+            
+            if (mediaState.videoVisible) {
+                videoContainer.classList.add('show');
+                videoToggle.textContent = '📺 Ocultar Vídeo';
+                videoToggle.classList.add('active');
+                playSound('powerup');
+            } else {
+                videoContainer.classList.remove('show');
+                videoToggle.textContent = '📺 Mostrar Vídeo Educativo';
+                videoToggle.classList.remove('active');
+                video.pause();
+            }
+        }
+
+        function toggleAudio() {
+            const audio = document.getElementById('game-bgm');
+            const audioToggle = document.getElementById('audio-toggle');
+            
+            mediaState.audioPlaying = !mediaState.audioPlaying;
+            
+            if (mediaState.audioPlaying) {
+                audio.play().catch(e => console.log('Audio play failed:', e));
+                audioToggle.textContent = '🎵 Desligar Música';
+                audioToggle.classList.add('active');
+                playSound('powerup');
+            } else {
+                audio.pause();
+                audioToggle.textContent = '🎵 Ligar Música';
+                audioToggle.classList.remove('active');
+            }
+        }
+
+        function toggleSound() {
+            const soundToggle = document.getElementById('sound-toggle');
+            
+            mediaState.soundEnabled = !mediaState.soundEnabled;
+            
+            if (mediaState.soundEnabled) {
+                soundToggle.textContent = '🔊 Sons Ligados';
+                soundToggle.classList.add('active');
+                playSound('correct');
+            } else {
+                soundToggle.textContent = '🔇 Sons Desligados';
+                soundToggle.classList.add('inactive');
+            }
+        }
+
+        function playSound(type) {
+            if (!mediaState.soundEnabled) return;
+            
+            // Create audio context for sound effects
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Different sounds for different actions
+                switch(type) {
+                    case 'correct':
+                        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                        oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                        break;
+                    case 'incorrect':
+                        oscillator.frequency.setValueAtTime(220, audioContext.currentTime); // A3
+                        oscillator.frequency.setValueAtTime(196, audioContext.currentTime + 0.2); // G3
+                        break;
+                    case 'coin':
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+                        break;
+                    case 'powerup':
+                        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+                        break;
+                }
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                console.log('Sound effect failed:', e);
+            }
+        }
+
+        // Initialize SDKs
+        async function initializeApp() {
+            try {
+                if (window.dataSdk) {
+                    const initResult = await window.dataSdk.init(dataHandler);
+                    if (!initResult.isOk) {
+                        console.error("Failed to initialize data SDK");
+                    }
+                }
+
+                if (window.elementSdk) {
+                    await window.elementSdk.init(element);
+                }
+            } catch (error) {
+                console.error("Error initializing app:", error);
+            }
+        }
+
+        function startGame() {
+            const player1Name = document.getElementById('player1-name').value.trim();
+            const player2Name = document.getElementById('player2-name').value.trim();
+            
+            if (!player1Name) {
+                document.getElementById('player1-name').style.borderColor = '#ef4444';
+                return;
+            }
+            
+            if (!player2Name) {
+                document.getElementById('player2-name').style.borderColor = '#ef4444';
+                return;
+            }
+
+            players[0].name = player1Name;
+            players[1].name = player2Name;
+            players[0].coins = 10; // Start with some coins
+            players[1].coins = 10;
+            gameState.gameStarted = true;
+            gameState.currentPlayerIndex = 0;
+            
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            initializeBoard();
+            updatePlayerDisplay();
+            updatePowerupButtons();
+            playSound('powerup');
+        }
+
+        function initializeBoard() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            
+            // Define special cells
+            gameState.specialCells = {
+                3: 'treasure',
+                7: 'mystery',
+                11: 'double',
+                15: 'treasure',
+                18: 'mystery'
+            };
+            
+            for (let i = 0; i <= gameState.boardSize; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'board-cell';
+                cell.id = `cell-${i}`;
+                
+                if (i === 0) {
+                    cell.classList.add('cell-start');
+                    cell.innerHTML = '🏁<br>INÍCIO';
+                } else if (i === gameState.boardSize) {
+                    cell.classList.add('cell-finish');
+                    cell.innerHTML = '🏆<br>FIM';
+                } else if (gameState.specialCells[i] === 'treasure') {
+                    cell.classList.add('cell-treasure');
+                    cell.innerHTML = '💰<br>TESOURO';
+                } else if (gameState.specialCells[i] === 'mystery') {
+                    cell.classList.add('cell-mystery');
+                    cell.innerHTML = '🎁<br>MISTÉRIO';
+                } else if (gameState.specialCells[i] === 'double') {
+                    cell.classList.add('cell-double');
+                    cell.innerHTML = '⚡<br>DOBRO';
+                } else if (i % 4 === 0) {
+                    cell.classList.add('cell-bonus');
+                    cell.innerHTML = '⭐<br>BÔNUS';
+                } else if (i % 3 === 0) {
+                    cell.classList.add('cell-challenge');
+                    cell.innerHTML = '⚡<br>DESAFIO';
+                } else {
+                    cell.classList.add('cell-question');
+                    cell.innerHTML = '❓<br>PERGUNTA';
+                }
+                
+                board.appendChild(cell);
+            }
+            
+            updatePlayerPosition();
+        }
+
+        function updatePlayerDisplay() {
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            
+            document.getElementById('current-player').textContent = `Vez de: ${currentPlayer.name}`;
+            document.getElementById('player-position').textContent = currentPlayer.position;
+            document.getElementById('player-score').textContent = currentPlayer.correctAnswers;
+            document.getElementById('player-coins').textContent = currentPlayer.coins;
+            
+            // Update both player cards
+            players.forEach((player, index) => {
+                const playerId = index + 1;
+                document.getElementById(`player${playerId}-name-display`).textContent = player.name;
+                document.getElementById(`player${playerId}-position-display`).textContent = player.position;
+                document.getElementById(`player${playerId}-questions-display`).textContent = player.questionsAnswered;
+                document.getElementById(`player${playerId}-correct-display`).textContent = player.correctAnswers;
+                document.getElementById(`player${playerId}-coins-display`).textContent = player.coins;
+                
+                // Update active powerups display
+                const activePowerups = Object.keys(player.powerups).filter(p => player.powerups[p]);
+                const powerupNames = {
+                    shield: '🛡️ Escudo',
+                    double: '⚡ Dobrar',
+                    jump: '🚀 Pulo',
+                    hint: '💡 Dica'
+                };
+                
+                const activeText = activePowerups.length > 0 
+                    ? activePowerups.map(p => powerupNames[p]).join(', ')
+                    : 'Nenhum';
+                
+                document.getElementById(`player${playerId}-active-powerups`).textContent = `Power-ups Ativos: ${activeText}`;
+                
+                // Highlight current player's card
+                const card = document.getElementById(`player${playerId}-card`);
+                if (index === gameState.currentPlayerIndex) {
+                    card.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                    card.style.transform = 'scale(1.02)';
+                } else {
+                    card.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                    card.style.transform = 'scale(1)';
+                }
+            });
+        }
+
+        function updatePlayerPosition() {
+            // Remove existing pins
+            document.querySelectorAll('.player-pin').forEach(pin => pin.remove());
+            
+            // Add pins for both players
+            players.forEach((player, index) => {
+                const currentCell = document.getElementById(`cell-${player.position}`);
+                if (currentCell) {
+                    const pin = document.createElement('div');
+                    pin.className = `player-pin player-${index + 1}`;
+                    currentCell.appendChild(pin);
+                }
+            });
+        }
+
+        function updatePowerupButtons() {
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            
+            Object.keys(powerupCosts).forEach(powerup => {
+                const button = document.getElementById(`${powerup}-powerup`);
+                const cost = powerupCosts[powerup];
+                const isActive = currentPlayer.powerups[powerup];
+                const canAfford = currentPlayer.coins >= cost;
+                
+                if (isActive) {
+                    button.classList.add('active');
+                    button.classList.remove('disabled');
+                } else if (canAfford) {
+                    button.classList.remove('disabled', 'active');
+                } else {
+                    button.classList.add('disabled');
+                    button.classList.remove('active');
+                }
+            });
+        }
+
+        function buyPowerup(type) {
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            const cost = powerupCosts[type];
+            
+            if (currentPlayer.powerups[type]) {
+                showNotification(`${getPowerupName(type)} já está ativo!`, '#f39c12');
+                return;
+            }
+            
+            if (currentPlayer.coins < cost) {
+                showNotification(`Moedas insuficientes! Precisa de ${cost} moedas.`, '#e74c3c');
+                return;
+            }
+            
+            currentPlayer.coins -= cost;
+            currentPlayer.powerups[type] = true;
+            
+            updatePlayerDisplay();
+            updatePowerupButtons();
+            playSound('powerup');
+            
+            showNotification(`${getPowerupName(type)} ativado para ${currentPlayer.name}!`, '#2ecc71');
+            
+            // Auto-deactivate after use (except shield)
+            if (type !== 'shield') {
+                setTimeout(() => {
+                    currentPlayer.powerups[type] = false;
+                    updatePlayerDisplay();
+                    updatePowerupButtons();
+                }, type === 'double' ? 30000 : 60000); // 30s for double, 60s for others
+            }
+        }
+
+        function getPowerupName(type) {
+            const names = {
+                shield: '🛡️ Escudo',
+                double: '⚡ Dobrar Moedas',
+                jump: '🚀 Super Pulo',
+                hint: '💡 Dica Extra'
+            };
+            return names[type];
+        }
+
+        function showNotification(message, color = '#2ecc71') {
+            const notification = document.createElement('div');
+            notification.className = 'powerup-notification';
+            notification.style.background = color;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function spinRoulette() {
+            if (gameState.isSpinning) return;
+            
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            
+            gameState.isSpinning = true;
+            const spinButton = document.getElementById('spin-button');
+            const roulette = document.getElementById('roulette-wheel');
+            const resultDiv = document.getElementById('spin-result');
+            
+            spinButton.disabled = true;
+            spinButton.innerHTML = '<span class="loading"></span> Girando...';
+            resultDiv.textContent = '';
+            
+            // Random rotation (multiple full rotations + random angle)
+            const randomRotation = 1440 + Math.random() * 360;
+            roulette.style.transform = `rotate(${randomRotation}deg)`;
+            
+            setTimeout(() => {
+                let steps = Math.floor(Math.random() * 6) + 1;
+                
+                // Apply jump powerup
+                if (currentPlayer.powerups.jump) {
+                    steps += 3;
+                    currentPlayer.powerups.jump = false;
+                    showNotification(`🚀 ${currentPlayer.name} usou Super Pulo! +3 casas extras!`);
+                    playSound('powerup');
+                }
+                
+                const colors = ['🔴', '🟢', '🔵', '🟡', '🟠', '🟣'];
+                const colorNames = ['Vermelho', 'Verde', 'Azul', 'Amarelo', 'Laranja', 'Roxo'];
+                const resultIndex = Math.floor(randomRotation / 60) % 6;
+                
+                resultDiv.innerHTML = `${colors[resultIndex]} ${colorNames[resultIndex]} - ${currentPlayer.name} avança ${steps} casas!`;
+                
+                movePlayer(steps);
+                
+                gameState.isSpinning = false;
+                spinButton.disabled = false;
+                spinButton.innerHTML = '🎲 Girar Roleta';
+                updatePowerupButtons();
+            }, 3000);
+        }
+
+        function movePlayer(steps) {
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            const targetPosition = Math.min(currentPlayer.position + steps, gameState.boardSize);
+            
+            // Animate movement
+            let currentPos = currentPlayer.position;
+            const moveInterval = setInterval(() => {
+                if (currentPos < targetPosition) {
+                    currentPos++;
+                    currentPlayer.position = currentPos;
+                    updatePlayerPosition();
+                    updatePlayerDisplay();
+                } else {
+                    clearInterval(moveInterval);
+                    
+                    // Check for special cell effects
+                    handleSpecialCell();
+                    
+                    // Check if game is finished
+                    if (currentPlayer.position >= gameState.boardSize) {
+                        finishGame();
+                    } else {
+                        // Show question after movement
+                        setTimeout(() => showQuestion(), 500);
+                    }
+                }
+            }, 300);
+        }
+
+        function handleSpecialCell() {
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            const cellType = gameState.specialCells[currentPlayer.position];
+            
+            if (cellType === 'treasure') {
+                const bonus = 5;
+                currentPlayer.coins += bonus;
+                showBonusEffect(`+${bonus} 💰`);
+                showNotification(`${currentPlayer.name} encontrou tesouro! +${bonus} moedas!`);
+                playSound('coin');
+            } else if (cellType === 'mystery') {
+                const effects = [
+                    () => { 
+                        currentPlayer.coins += 3; 
+                        showNotification(`Mistério: ${currentPlayer.name} ganhou +3 moedas!`); 
+                        playSound('coin');
+                    },
+                    () => { 
+                        currentPlayer.coins += 7; 
+                        showNotification(`Mistério: ${currentPlayer.name} ganhou +7 moedas!`); 
+                        playSound('coin');
+                    },
+                    () => { 
+                        if (currentPlayer.position > 1) {
+                            currentPlayer.position -= 1;
+                            updatePlayerPosition();
+                            showNotification(`Mistério: ${currentPlayer.name} volta 1 casa!`, '#e74c3c');
+                            playSound('incorrect');
+                        }
+                    }
+                ];
+                const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+                randomEffect();
+            } else if (cellType === 'double') {
+                currentPlayer.powerups.double = true;
+                showNotification(`Casa Especial: Próximas moedas de ${currentPlayer.name} serão dobradas!`);
+                playSound('powerup');
+                setTimeout(() => {
+                    currentPlayer.powerups.double = false;
+                    updatePowerupButtons();
+                }, 30000);
+            }
+            
+            updatePlayerDisplay();
+            updatePowerupButtons();
+        }
+
+        function showQuestion() {
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            const randomQuestion = quizData[Math.floor(Math.random() * quizData.length)];
+            gameState.currentQuestion = randomQuestion;
+            
+            document.getElementById('question-theme').textContent = `${randomQuestion.tema} - ${currentPlayer.name}`;
+            document.getElementById('case-text').textContent = randomQuestion.caso;
+            document.getElementById('question-text').textContent = randomQuestion.pergunta;
+            
+            // Show hint if powerup is active
+            const hintSection = document.getElementById('hint-section');
+            if (currentPlayer.powerups.hint) {
+                document.getElementById('hint-text').textContent = randomQuestion.hint;
+                hintSection.classList.remove('hidden');
+                currentPlayer.powerups.hint = false;
+                showNotification(`💡 ${currentPlayer.name} usou Dica Extra!`);
+                playSound('powerup');
+            } else {
+                hintSection.classList.add('hidden');
+            }
+            
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+            
+            Object.entries(randomQuestion.opcoes).forEach(([letter, text]) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerHTML = `<strong>${letter})</strong> ${text}`;
+                button.onclick = () => selectAnswer(letter, button);
+                optionsGrid.appendChild(button);
+            });
+            
+            document.getElementById('explanation').classList.remove('show');
+            document.getElementById('continue-btn').disabled = true;
+            document.getElementById('question-modal').classList.add('show');
+            updatePowerupButtons();
+        }
+
+        function selectAnswer(selectedLetter, buttonElement) {
+            const currentPlayer = players[gameState.currentPlayerIndex];
+            const question = gameState.currentQuestion;
+            
+            // Disable all options
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.onclick = null;
+                btn.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // Mark selected option
+            buttonElement.classList.add('selected');
+            
+            const isCorrect = selectedLetter === question.resposta_correta;
+            buttonElement.classList.add(isCorrect ? 'correct' : 'incorrect');
+            
+            // Highlight correct answer if user was wrong
+            if (!isCorrect) {
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    const letter = btn.innerHTML.match(/<strong>([A-D])\)/)[1];
+                    if (letter === question.resposta_correta) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            
+            // Update player stats
+            currentPlayer.questionsAnswered++;
+            
+            if (isCorrect) {
+                currentPlayer.correctAnswers++;
+                
+                // Award coins
+                let coinsEarned = 3;
+                if (currentPlayer.powerups.double) {
+                    coinsEarned *= 2;
+                    showNotification(`⚡ Moedas de ${currentPlayer.name} dobradas!`);
+                }
+                
+                currentPlayer.coins += coinsEarned;
+                showCoinAnimation(coinsEarned);
+                playSound('correct');
+            } else {
+                // Use shield or apply penalty
+                if (currentPlayer.powerups.shield) {
+                    currentPlayer.powerups.shield = false;
+                    showNotification(`🛡️ Escudo protegeu ${currentPlayer.name}!`);
+                    playSound('powerup');
+                } else {
+                    // Move back one position
+                    if (currentPlayer.position > 0) {
+                        currentPlayer.position = Math.max(0, currentPlayer.position - 1);
+                        updatePlayerPosition();
+                        showBombAnimation();
+                        playSound('incorrect');
+                    }
+                }
+            }
+            
+            // Show explanation
+            document.getElementById('explanation-text').textContent = question.explicacao;
+            document.getElementById('explanation').classList.add('show');
+            document.getElementById('continue-btn').disabled = false;
+            
+            // Save answer to data SDK
+            saveGameData(question.id, selectedLetter, isCorrect);
+            updatePlayerDisplay();
+            updatePowerupButtons();
+        }
+
+        function showCoinAnimation(amount) {
+            for (let i = 0; i < amount; i++) {
+                setTimeout(() => {
+                    const coin = document.createElement('div');
+                    coin.className = 'coin-animation';
+                    coin.textContent = '💰';
+                    coin.style.left = `${50 + (Math.random() - 0.5) * 200}px`;
+                    coin.style.top = `${50 + (Math.random() - 0.5) * 100}px`;
+                    document.body.appendChild(coin);
+                    
+                    setTimeout(() => coin.remove(), 2000);
+                }, i * 200);
+            }
+        }
+
+        function showBombAnimation() {
+            const bomb = document.createElement('div');
+            bomb.className = 'bomb-animation';
+            bomb.textContent = '💣';
+            bomb.style.left = '50%';
+            bomb.style.top = '50%';
+            bomb.style.transform = 'translate(-50%, -50%)';
+            document.body.appendChild(bomb);
+            
+            setTimeout(() => bomb.remove(), 1500);
+        }
+
+        function showBonusEffect(text) {
+            const effect = document.createElement('div');
+            effect.className = 'bonus-effect';
+            effect.textContent = text;
+            document.body.appendChild(effect);
+            
+            setTimeout(() => effect.remove(), 2000);
+        }
+
+        async function saveGameData(questionId, selectedAnswer, isCorrect) {
+            if (!window.dataSdk) return;
+            
+            if (currentRecordCount >= 999) {
+                return;
+            }
+            
+            try {
+                const currentPlayer = players[gameState.currentPlayerIndex];
+                const result = await window.dataSdk.create({
+                    player_name: currentPlayer.name,
+                    question_id: questionId,
+                    selected_answer: selectedAnswer,
+                    is_correct: isCorrect,
+                    current_position: currentPlayer.position,
+                    questions_answered: currentPlayer.questionsAnswered,
+                    correct_answers: currentPlayer.correctAnswers,
+                    coins_earned: currentPlayer.coins,
+                    timestamp: new Date().toISOString()
+                });
+                
+                if (!result.isOk) {
+                    console.error("Failed to save game data");
+                }
+            } catch (error) {
+                console.error("Error saving game data:", error);
+            }
+        }
+
+        function continueGame() {
+            document.getElementById('question-modal').classList.remove('show');
+            
+            // Switch to next player
+            gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % 2;
+            
+            updatePlayerDisplay();
+            updatePowerupButtons();
+        }
+
+        function finishGame() {
+            // Determine winner
+            const player1 = players[0];
+            const player2 = players[1];
+            
+            let winner = '';
+            if (player1.position > player2.position) {
+                winner = `🏆 ${player1.name} venceu por posição!`;
+            } else if (player2.position > player1.position) {
+                winner = `🏆 ${player2.name} venceu por posição!`;
+            } else if (player1.correctAnswers > player2.correctAnswers) {
+                winner = `🏆 ${player1.name} venceu por acertos!`;
+            } else if (player2.correctAnswers > player1.correctAnswers) {
+                winner = `🏆 ${player2.name} venceu por acertos!`;
+            } else if (player1.coins > player2.coins) {
+                winner = `🏆 ${player1.name} venceu por moedas!`;
+            } else if (player2.coins > player1.coins) {
+                winner = `🏆 ${player2.name} venceu por moedas!`;
+            } else {
+                winner = '🤝 Empate! Ambos jogaram muito bem!';
+            }
+            
+            // Save final game state
+            saveFinalGameData();
+            
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+            
+            // Update final results
+            document.getElementById('player1-final-name').textContent = player1.name;
+            document.getElementById('player1-final-position').textContent = player1.position;
+            document.getElementById('player1-final-score').textContent = player1.correctAnswers;
+            document.getElementById('player1-final-coins').textContent = player1.coins;
+            
+            document.getElementById('player2-final-name').textContent = player2.name;
+            document.getElementById('player2-final-position').textContent = player2.position;
+            document.getElementById('player2-final-score').textContent = player2.correctAnswers;
+            document.getElementById('player2-final-coins').textContent = player2.coins;
+            
+            document.getElementById('winner-announcement').textContent = winner;
+            
+            playSound('powerup');
+        }
+
+        async function saveFinalGameData() {
+            if (!window.dataSdk || currentRecordCount >= 999) return;
+            
+            try {
+                for (let player of players) {
+                    const result = await window.dataSdk.create({
+                        player_name: player.name,
+                        final_position: player.position,
+                        questions_answered: player.questionsAnswered,
+                        correct_answers: player.correctAnswers,
+                        game_completed: true,
+                        completion_time: new Date().toISOString(),
+                        coins_earned: player.coins
+                    });
+                    
+                    if (!result.isOk) {
+                        console.error("Failed to save final game data for", player.name);
+                    }
+                }
+            } catch (error) {
+                console.error("Error saving final game data:", error);
+            }
+        }
+
+        function restartGame() {
+            // Reset players
+            players.forEach(player => {
+                player.position = 0;
+                player.questionsAnswered = 0;
+                player.correctAnswers = 0;
+                player.coins = 0;
+                player.powerups = {
+                    shield: false,
+                    double: false,
+                    jump: false,
+                    hint: false
+                };
+            });
+            
+            // Reset game state
+            gameState = {
+                isSpinning: false,
+                currentQuestion: null,
+                boardSize: 20,
+                specialCells: {},
+                currentPlayerIndex: 0,
+                gameStarted: false
+            };
+            
+            // Reset media state
+            mediaState = {
+                videoVisible: false,
+                audioPlaying: false,
+                soundEnabled: true
+            };
+            
+            // Reset UI
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+            document.getElementById('player1-name').value = '';
+            document.getElementById('player2-name').value = '';
+            document.getElementById('player1-name').style.borderColor = '#ff6b6b';
+            document.getElementById('player2-name').style.borderColor = '#4ecdc4';
+            
+            // Reset media controls
+            const videoContainer = document.getElementById('video-container');
+            const video = document.getElementById('intro-video');
+            const audio = document.getElementById('game-bgm');
+            
+            videoContainer.classList.remove('show');
+            video.pause();
+            audio.pause();
+            
+            document.getElementById('video-toggle').textContent = '📺 Mostrar Vídeo Educativo';
+            document.getElementById('video-toggle').classList.remove('active');
+            document.getElementById('audio-toggle').textContent = '🎵 Ligar Música';
+            document.getElementById('audio-toggle').classList.remove('active');
+            document.getElementById('sound-toggle').textContent = '🔊 Sons Ligados';
+            document.getElementById('sound-toggle').classList.add('active');
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'990bcccc563700e0',t:'MTc2MDgyOTk3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
