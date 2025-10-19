@@ -1014,45 +1014,55 @@
  </head>
  <body>
   <div class="container">
-   <div class="game-card"><div id="welcome-screen">
+   <div class="game-card">
+    <div id="welcome-screen">
      <div class="header">
       <h1 class="game-title" id="main-title">🎲 Jogo da Vida HPV 🎲</h1>
       <p class="subtitle" id="main-subtitle">Aprenda sobre HPV jogando! Role a roleta, responda perguntas e use power-ups especiais.</p>
-     </div><div class="video-container show" style="margin: 20px 0;">
+     </div>
+     <div class="video-container show" style="margin: 20px 0;">
       <video id="welcome-video" controls preload="auto" style="width: 100%; height: auto; border-radius: 12px;">
-        <source src="1000006988.mp4" type="video/mp4"> 
-        Seu navegador não suporta vídeo HTML5.
+       <source src="1760818263849.mp4" type="video/mp4">
+       Seu navegador não suporta vídeo HTML5.
       </video>
-     </div><div id="game-setup" class="hidden" style="text-align: center;">
+     </div>
+     <div id="game-setup" class="hidden" style="text-align: center;">
       <div style="margin: 30px 0 20px 0; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 12px; border: 2px solid #4ecdc4;">
        <h3 style="color: #333; margin-bottom: 20px;">🎮 Configurar Jogo</h3>
        <div style="margin-bottom: 20px;"><label for="player1-name" style="display: block; margin-bottom: 10px; font-weight: bold; font-size: 0.9rem;">Nome do Jogador 1:</label> <input type="text" id="player1-name" placeholder="Jogador 1..." style="padding: 12px; border: 2px solid #ff6b6b; border-radius: 8px; font-size: 1rem; width: 100%; max-width: 280px; min-height: 44px; touch-action: manipulation; margin-bottom: 15px;"> <label for="player2-name" style="display: block; margin-bottom: 10px; font-weight: bold; font-size: 0.9rem;">Nome do Jogador 2:</label> <input type="text" id="player2-name" placeholder="Jogador 2..." style="padding: 12px; border: 2px solid #4ecdc4; border-radius: 8px; font-size: 1rem; width: 100%; max-width: 280px; min-height: 44px; touch-action: manipulation;">
        </div><button class="btn btn-primary" id="start-game" onclick="startGame()"> <span id="start-button-text">🎮 Começar Jogo</span> </button>
       </div>
-     </div><div style="text-align: center; margin-top: 20px;"><button class="btn btn-primary" id="show-setup-btn" onclick="showGameSetup()" style="background: linear-gradient(45deg, #4ecdc4, #45b7d1); padding: 15px 30px; font-size: 1.1rem;"> ▶️ Configurar Jogo </button>
      </div>
-    </div><div id="game-screen" class="hidden">
+     <div style="text-align: center; margin-top: 20px;"><button class="btn btn-primary" id="show-setup-btn" onclick="showGameSetup()" style="background: linear-gradient(45deg, #4ecdc4, #45b7d1); padding: 15px 30px; font-size: 1.1rem;"> ▶️ Configurar Jogo </button>
+     </div>
+    </div>
+    <div id="game-screen" class="hidden">
      <div class="header">
       <h1 class="game-title" id="game-title">🎲 Jogo da Vida HPV 🎲</h1>
-     </div><div class="media-controls">
+     </div>
+     <div class="media-controls">
       <div class="media-title">
        🎬 Controles de Mídia
       </div>
       <div class="media-buttons"><button class="media-btn" id="video-toggle" onclick="toggleVideo()"> 📺 Mostrar Vídeo Educativo </button> <button class="media-btn" id="audio-toggle" onclick="toggleAudio()"> 🎵 Ligar Música </button> <button class="media-btn" id="sound-toggle" onclick="toggleSound()"> 🔊 Sons Ligados </button>
       </div>
-     </div><div class="video-container" id="video-container">
+     </div>
+     <div class="video-container" id="video-container">
       <video id="intro-video" controls preload="auto">
-        <source src="1000006988.mp4" type="video/mp4">
-         Seu navegador não suporta vídeo HTML5.
+       <source src="1760818263849.mp4" type="video/mp4">
+       Seu navegador não suporta vídeo HTML5.
       </video>
-     </div><audio id="game-bgm" loop preload="auto"><source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
-     </audio><div class="game-info">
+     </div>
+     <audio id="game-bgm" loop preload="auto"><source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
+     </audio>
+     <div class="game-info">
       <div class="current-player" id="current-player">
        Vez de: Jogador 1
       </div>
       <div style="margin-top: 10px;"><span>Posição: <strong id="player-position">0</strong></span> | <span>Acertos: <strong id="player-score">0</strong></span> | <span>💰 Moedas: <strong id="player-coins">0</strong></span>
       </div>
-     </div><div class="powerups-panel">
+     </div>
+     <div class="powerups-panel">
       <div class="powerups-title">
        ⚡ LOJA DE POWER-UPS ⚡
       </div>
@@ -1102,7 +1112,8 @@
         </div>
        </div>
       </div>
-     </div><div class="roulette-container">
+     </div>
+     <div class="roulette-container">
       <div class="roulette-wheel" id="roulette-wheel">
        <div class="roulette-pointer"></div>
        <div class="roulette-center">
@@ -1110,9 +1121,12 @@
        </div>
       </div><button class="spin-button" id="spin-button" onclick="spinRoulette()"> 🎲 Girar Roleta </button>
       <div id="spin-result" style="margin-top: 15px; font-weight: bold; font-size: 1.1rem;"></div>
-     </div><div class="board-container">
-      <div class="game-board" id="game-board"></div>
-     </div><div class="players-panel">
+     </div>
+     <div class="board-container">
+      <div class="game-board" id="game-board">
+       </div>
+     </div>
+     <div class="players-panel">
       <div class="player-card player-1" id="player1-card">
        <div class="player-name" id="player1-name-display">
         Jogador 1
@@ -1162,7 +1176,8 @@
        </div>
       </div>
      </div>
-    </div><div id="results-screen" class="hidden">
+    </div>
+    <div id="results-screen" class="hidden">
      <div class="header">
       <h1 class="game-title">🏆 Fim de Jogo! 🏆</h1>
       <div style="font-size: 1.2rem; margin: 20px 0;">
@@ -1204,7 +1219,8 @@
      </div>
     </div>
    </div>
-  </div><div class="modal" id="question-modal">
+  </div>
+  <div class="modal" id="question-modal">
    <div class="modal-content">
     <div class="question-header">
      <h3 id="question-theme" style="color: #6366f1;">Pergunta sobre HPV</h3>
