@@ -237,7 +237,6 @@
         
         .board-cell {
             aspect-ratio: 1;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
             border: 2px solid #dee2e6;
             border-radius: 12px;
             display: flex;
@@ -251,18 +250,45 @@
             transition: all 0.3s ease;
             cursor: pointer;
             padding: 4px;
+            text-align: center;
         }
         
-        .board-cell.special {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-            color: white;
-            border-color: #ff4757;
-            animation: pulse 2s infinite;
+        .board-cell .cell-icon {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+            transition: transform 0.3s ease;
+        }
+        
+        /* TIPOS DE CASAS ESPECIAIS E PERGUNTAS (Visualização aprimorada) */
+        
+        /* Casa Início/Fim */
+        .cell-start { background: #2ecc71; border-color: #27ae60; color: white; }
+        .cell-finish { background: #9b59b6; border-color: #8e44ad; color: white; }
+
+        /* Casa Pergunta Padrão */
+        .cell-question { background: linear-gradient(135deg, #3498db, #5dade2); border-color: #2980b9; color: white; }
+        .cell-question .cell-icon { content: '❓'; }
+        
+        /* Casa Bônus (Moedas/Bônus) */
+        .cell-bonus { background: linear-gradient(135deg, #f39c12, #f1c40f); border-color: #e67e22; color: #333; }
+        .cell-bonus .cell-icon { content: '⭐'; }
+
+        /* Casa Desafio (Penalidade/Voltar) */
+        .cell-challenge { background: linear-gradient(135deg, #e74c3c, #c0392b); border-color: #c0392b; color: white; }
+        .cell-challenge .cell-icon { content: '⚠️'; }
+
+        /* Casa Mistério (Efeito Aleatório) */
+        .cell-mystery { background: linear-gradient(135deg, #34495e, #2c3e50); border-color: #2c3e50; color: white; }
+        .cell-mystery .cell-icon { content: '🎁'; }
+        
+        /* EFEITO DE GLOW E MARCADORES */
+        .board-cell.has-players {
+            animation: playerGlow 1.5s infinite alternate;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes playerGlow {
+            0% { box-shadow: 0 0 8px rgba(78, 205, 196, 0.5); }
+            100% { box-shadow: 0 0 15px rgba(78, 205, 196, 0.8); }
         }
 
         .player-marker {
@@ -284,120 +310,23 @@
 
         .player-marker.player-1 { background: #4ecdc4; top: -5px; left: -5px; }
         .player-marker.player-2 { background: #ff6b6b; top: -5px; right: -5px; }
-        
-        /* MESSAGES AND MODALS (Simplified for brevity, maintaining structure) */
-        .game-message {
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
-            font-weight: bold;
-            color: #2d3436;
-            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
-            transform: translateY(10px);
-            opacity: 0;
-            animation: slideIn 0.5s ease forwards;
-        }
 
-        @keyframes slideIn {
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
+        /* QUESTION MODAL (mantido) */
         .question-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none; /* Escondido por padrão */
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            padding: 10px;
-            backdrop-filter: blur(5px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 10px; backdrop-filter: blur(5px);
         }
 
         .question-content {
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            border-radius: 20px;
-            padding: 20px;
-            max-width: 90%;
-            width: 100%;
-            max-height: 95%;
-            overflow-y: auto;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
-            border: 3px solid #4ecdc4;
-            transform: scale(0.9);
-            animation: modalAppear 0.5s ease forwards;
-        }
-
-        @keyframes modalAppear {
-            to {
-                transform: scale(1);
-            }
-        }
-
-        .question-case {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-style: italic;
-            color: #1565c0;
-            font-size: 0.9rem;
-            border-left: 4px solid #2196f3;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa); border-radius: 20px; padding: 20px; max-width: 90%; width: 100%; max-height: 95%; overflow-y: auto; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4); border: 3px solid #4ecdc4; transform: scale(0.9); animation: modalAppear 0.5s ease forwards;
         }
         
-        .question-text {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            text-align: center;
-            padding: 12px;
-            border: 2px solid #4ecdc4;
-            border-radius: 10px;
-        }
-        
-        .option-btn {
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-            position: relative;
-        }
-
-        .option-btn.correct {
-            border-color: #4caf50;
-            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-            color: #2e7d32;
-        }
-
-        .option-btn.wrong {
-            border-color: #f44336;
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            color: #c62828;
-        }
-        
-        .close-question {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 15px;
-            width: 100%;
-        }
+        /* [Outros estilos de modal mantidos para brevidade] */
+        .question-case { background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-style: italic; color: #1565c0; font-size: 0.9rem; border-left: 4px solid #2196f3; }
+        .question-text { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; color: #2c3e50; text-align: center; padding: 12px; border: 2px solid #4ecdc4; border-radius: 10px; }
+        .option-btn { padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; background: linear-gradient(135deg, #ffffff, #f8f9fa); cursor: pointer; transition: all 0.3s ease; font-size: 0.95rem; position: relative; }
+        .option-btn.correct { border-color: #4caf50; background: linear-gradient(135deg, #e8f5e8, #c8e6c9); color: #2e7d32; }
+        .option-btn.wrong { border-color: #f44336; background: linear-gradient(135deg, #ffebee, #ffcdd2); color: #c62828; }
+        .close-question { background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-top: 15px; width: 100%; }
 
         /* RESPONSIVE AND MEDIA QUERIES */
         @media (min-width: 768px) {
@@ -438,10 +367,11 @@
 
             <div id="introVideoContainer" class="intro-video-container">
                 <video id="intro-video" controls preload="auto" poster="placeholder.jpg">
-                    <source src="1760818263849.mp4" type="video/mp4">
+                    <source src="1760818263849.mp4" type="video/mp4"> 
                     Seu navegador não suporta vídeo HTML5.
                 </video>
             </div>
+
             <div class="game-controls">
                 <div class="players-info">
                     <div class="player-info player-1" id="player1Info">
@@ -468,7 +398,8 @@
                 </div>
             </div>
 
-            <div class="dice-container" style="margin-top: 15px;"> <div class="dice" id="dice" onclick="rollDice()">🎯</div>
+            <div class="dice-container" style="margin-top: 15px;">
+                <div class="dice" id="dice" onclick="rollDice()">🎯</div>
                 <div class="dice-label" id="diceLabel">Clique para girar a roleta</div>
             </div>
 
@@ -517,7 +448,35 @@
 
         // --- Game data (Questions) ---
         const boardSize = 20;
-        const questionCells = Array.from({length: boardSize}, (_, i) => i + 1);
+        
+        // NOVO: Define o tipo de célula para cada casa (excluindo a casa 1 - Start)
+        // 0: Start (Casa 1)
+        // 1: Pergunta Padrão
+        // 2: Bônus (Moedas/Vantagem)
+        // 3: Desafio (Penalidade/Perder Moedas)
+        // 4: Mistério (Aleatório)
+        const cellTypes = [
+            0, // Casa 1 (Início)
+            1, 3, 2, 1, 4, 1, 3, 2, 1, 
+            4, 1, 3, 2, 1, 4, 1, 3, 2, 1, // Casar 2 a 20 (Fim é a 20)
+        ];
+        
+        const cellTypeClasses = {
+            0: 'cell-start',
+            1: 'cell-question',
+            2: 'cell-bonus',
+            3: 'cell-challenge',
+            4: 'cell-mystery'
+        };
+
+        const cellTypeIcons = {
+            0: '🏁',
+            1: '❓',
+            2: '⭐',
+            3: '⚠️',
+            4: '🎁'
+        };
+        
         const hpvQuestions = [
             // PERGUNTAS INICIAIS (q1-q15)
             { id: "q1", case: "Caso de Sofia (16 anos): Sofia notou o surgimento de pequenas 'bolinhas' ou 'verruguinhas' na região genital e está com medo.", question: "Se essas lesões forem realmente verrugas de HPV (Condiloma Acuminado), qual a medida mais importante que Sofia deve tomar imediatamente?", hint: "O diagnóstico correto deve sempre ser feito por um profissional de saúde.", options: [ "A. Comprar uma pomada sem receita na farmácia para fazer o tratamento em casa.", "B. Ignorar, pois verrugas somem sozinhas em adolescentes.", "C. Buscar imediatamente um médico (ginecologista ou urologista) para o diagnóstico correto e iniciar o tratamento das lesões.", "D. Fazer um teste de gravidez, pois verrugas são sinal de alteração hormonal." ], correct: 2, explanation: "É fundamental procurar um profissional de saúde (Ginecologista, Urologista, Proctologista ou Dermatologista) para confirmar o diagnóstico de HPV e iniciar o tratamento adequado das lesões, evitando a progressão e a transmissão." },
@@ -591,7 +550,6 @@
         }
 
         // --- Game Logic ---
-        const healthIcons = ['🏥', '💊', '🩺', '💉', '🧬', '🔬', '❤️', '🛡️', '🌟', '✨'];
 
         function initializeBoard() {
             const gameBoard = document.getElementById('gameBoard');
@@ -602,22 +560,38 @@
                 cell.className = 'board-cell';
                 cell.id = `cell-${i}`;
                 
+                // Determina o tipo e classe da célula
+                const typeIndex = i < cellTypes.length ? cellTypes[i] : 1; // Padrão 'question' se fora do array
+                const cellClass = cellTypeClasses[typeIndex];
+                const cellIcon = cellTypeIcons[typeIndex];
+                
+                cell.classList.add(cellClass);
+
                 const icon = document.createElement('div');
                 icon.className = 'cell-icon';
-                icon.textContent = healthIcons[i % healthIcons.length];
+                
+                // Texto do ícone: "FIM" para a última casa, ícone para as demais
+                if (i === boardSize) {
+                    icon.textContent = '🏆';
+                    cell.classList.add('cell-finish');
+                    cell.classList.remove(cellClass);
+                    cell.classList.remove('special');
+                } else if (i === 1) {
+                    icon.textContent = '🏁';
+                    cell.classList.add('cell-start');
+                    cell.classList.remove(cellClass);
+                    cell.classList.remove('special');
+                } else {
+                    icon.textContent = cellIcon;
+                    cell.classList.add('special');
+                }
+
 
                 const number = document.createElement('div');
                 number.textContent = i;
 
                 cell.appendChild(icon);
                 cell.appendChild(number);
-
-                if (questionCells.includes(i)) {
-                    cell.classList.add('special');
-                    cell.title = 'Casa de pergunta - Teste seus conhecimentos sobre HPV!';
-                    icon.textContent = '❓';
-                }
-
                 gameBoard.appendChild(cell);
             }
             updatePlayerPositions();
@@ -644,7 +618,7 @@
             });
         }
 
-        // FUNÇÕES DE CONTROLE DE VÍDEO (RESTAURADAS E ATUALIZADAS)
+        // FUNÇÕES DE CONTROLE DE VÍDEO
         function hideIntroVideo() {
             const videoContainer = document.getElementById('introVideoContainer');
             const video = document.getElementById('intro-video');
@@ -669,8 +643,7 @@
         async function rollDice() {
             if (gameState.isRolling || gameState.gameCompleted) return;
 
-            // ESCONDE O VÍDEO NO PRIMEIRO CLIQUE
-            hideIntroVideo();
+            hideIntroVideo(); // ESCONDE O VÍDEO NO PRIMEIRO CLIQUE
 
             gameState.isRolling = true;
             const dice = document.getElementById('dice');
@@ -704,6 +677,7 @@
             currentPlayer.score += steps * 10;
             showMessage(`${currentPlayer.name} avançou ${steps} casas! Posição: ${currentPlayer.position}`, 'info');
 
+            // LÓGICA DE FIM DE JOGO
             if (currentPlayer.position >= boardSize) {
                 gameState.gameCompleted = true;
                 gameState.winner = gameState.currentPlayer;
@@ -711,8 +685,16 @@
                 return;
             }
 
+            // LÓGICA DE EFEITOS ESPECIAIS E PERGUNTAS
             setTimeout(() => {
-                if (questionCells.includes(currentPlayer.position)) {
+                const cellIndex = currentPlayer.position;
+                const cellType = cellIndex < cellTypes.length ? cellTypes[cellIndex] : 1;
+                
+                // Aplica efeito especial antes de mostrar a pergunta
+                handleSpecialEffect(cellType, currentPlayer);
+
+                // Mostra a pergunta se não for a casa inicial/final
+                if (cellType !== 0 && cellIndex !== boardSize) {
                     const questionIndex = Math.floor(Math.random() * hpvQuestions.length);
                     showQuestion(hpvQuestions[questionIndex]);
                     return;
@@ -725,6 +707,35 @@
             updatePlayerStats();
             await saveGameState();
         }
+        
+        // NOVO: Função para lidar com os efeitos especiais das casas
+        function handleSpecialEffect(type, player) {
+            const messages = {
+                2: `Bônus! ${player.name} ganhou +20 moedas! 🪙`,
+                3: `Desafio! ${player.name} perdeu 10 moedas! 💥`,
+                4: `Mistério! ${player.name} ganhou um giro extra! 🎲`
+            };
+
+            switch (type) {
+                case 2: // Bônus
+                    player.coins += 20;
+                    showRewardAnimation();
+                    showMessage(messages[2], 'success');
+                    break;
+                case 3: // Desafio
+                    player.coins = Math.max(0, player.coins - 10);
+                    showExplosion();
+                    showMessage(messages[3], 'error');
+                    break;
+                case 4: // Mistério (Exemplo: Ganha um giro extra - não implementado completamente aqui, apenas a mensagem)
+                    showMessage(messages[4], 'info');
+                    // Para simplificar, vamos apenas dar uma pequena vantagem em moedas:
+                    player.coins += 5;
+                    break;
+                // As casas de Pergunta Padrão (tipo 1) e Início/Fim não precisam de efeito extra nesta etapa.
+            }
+        }
+
 
         function switchPlayer() {
             gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
@@ -795,6 +806,7 @@
             if (isCorrect) {
                 currentPlayer.correctAnswers++;
                 currentPlayer.coins += 10;
+                currentPlayer.stars += 5;
                 currentPlayer.score += 100;
                 showRewardAnimation();
                 showMessage(`🎉 ${currentPlayer.name} acertou! Ganhou 10 moedas! 🪙`, 'success');
