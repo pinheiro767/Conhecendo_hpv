@@ -1,2299 +1,908 @@
 <!doctype html>
 <html lang="pt-BR">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#ff6b6b">
-  <title>Jogo da Vida HPV</title>
-  <script src="/_sdk/data_sdk.js"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-            background-size: 400% 400%;
-            animation: gradientShift 8s ease infinite;
-            min-height: 100%;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            position: relative;
-        }
-
-        /* Floating Bubbles Background */
-        .bubbles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .bubble {
-            position: absolute;
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-            backdrop-filter: blur(2px);
-        }
-
-        .bubble:nth-child(1) {
-            width: 80px;
-            height: 80px;
-            left: 10%;
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 107, 107, 0.1));
-            animation-delay: 0s;
-            animation-duration: 8s;
-        }
-
-        .bubble:nth-child(2) {
-            width: 60px;
-            height: 60px;
-            left: 20%;
-            background: linear-gradient(135deg, rgba(78, 205, 196, 0.3), rgba(78, 205, 196, 0.1));
-            animation-delay: 2s;
-            animation-duration: 6s;
-        }
-
-        .bubble:nth-child(3) {
-            width: 100px;
-            height: 100px;
-            left: 35%;
-            background: linear-gradient(135deg, rgba(69, 183, 209, 0.3), rgba(69, 183, 209, 0.1));
-            animation-delay: 4s;
-            animation-duration: 10s;
-        }
-
-        .bubble:nth-child(4) {
-            width: 40px;
-            height: 40px;
-            left: 50%;
-            background: linear-gradient(135deg, rgba(150, 206, 180, 0.3), rgba(150, 206, 180, 0.1));
-            animation-delay: 1s;
-            animation-duration: 7s;
-        }
-
-        .bubble:nth-child(5) {
-            width: 70px;
-            height: 70px;
-            left: 65%;
-            background: linear-gradient(135deg, rgba(254, 202, 87, 0.3), rgba(254, 202, 87, 0.1));
-            animation-delay: 3s;
-            animation-duration: 9s;
-        }
-
-        .bubble:nth-child(6) {
-            width: 90px;
-            height: 90px;
-            left: 80%;
-            background: linear-gradient(135deg, rgba(255, 159, 243, 0.3), rgba(255, 159, 243, 0.1));
-            animation-delay: 5s;
-            animation-duration: 8s;
-        }
-
-        .bubble:nth-child(7) {
-            width: 50px;
-            height: 50px;
-            left: 90%;
-            background: linear-gradient(135deg, rgba(116, 185, 255, 0.3), rgba(116, 185, 255, 0.1));
-            animation-delay: 2.5s;
-            animation-duration: 6.5s;
-        }
-
-        .bubble:nth-child(8) {
-            width: 65px;
-            height: 65px;
-            left: 5%;
-            background: linear-gradient(135deg, rgba(255, 118, 117, 0.3), rgba(255, 118, 117, 0.1));
-            animation-delay: 1.5s;
-            animation-duration: 7.5s;
-        }
-
-        .bubble:nth-child(9) {
-            width: 85px;
-            height: 85px;
-            left: 75%;
-            background: linear-gradient(135deg, rgba(162, 155, 254, 0.3), rgba(162, 155, 254, 0.1));
-            animation-delay: 3.5s;
-            animation-duration: 9.5s;
-        }
-
-        .bubble:nth-child(10) {
-            width: 55px;
-            height: 55px;
-            left: 45%;
-            background: linear-gradient(135deg, rgba(255, 195, 113, 0.3), rgba(255, 195, 113, 0.1));
-            animation-delay: 0.5s;
-            animation-duration: 6.8s;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        html, body {
-            height: 100%;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 10px;
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (min-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-        }
-
-        .game-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            padding: 15px;
-            margin-bottom: 10px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (min-width: 768px) {
-            .game-card {
-                border-radius: 20px;
-                padding: 30px;
-                margin-bottom: 20px;
-            }
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .game-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            line-height: 1.2;
-        }
-
-        @media (min-width: 768px) {
-            .game-title {
-                font-size: 3rem;
-            }
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
-
-        @media (min-width: 768px) {
-            .subtitle {
-                font-size: 1.3rem;
-                margin-bottom: 20px;
-            }
-        }
-
-        /* Video container in opening */
-        .intro-video-container {
-            max-width: 100%;
-            margin: 15px 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: block;
-        }
-
-        #intro-video {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        /* Game Board */
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            gap: 8px;
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        @media (min-width: 768px) {
-            .game-board {
-                grid-template-columns: repeat(10, 1fr);
-                gap: 12px;
-                padding: 20px;
-                max-height: 400px;
-            }
-        }
-
-        .board-cell {
-            aspect-ratio: 1;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border: 2px solid #dee2e6;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.6rem;
-            font-weight: bold;
-            color: #495057;
-            position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        @media (min-width: 768px) {
-            .board-cell {
-                font-size: 0.8rem;
-                padding: 6px;
-            }
-        }
-
-        .board-cell .cell-icon {
-            font-size: 1.2rem;
-            margin-bottom: 2px;
-        }
-
-        @media (min-width: 768px) {
-            .board-cell .cell-icon {
-                font-size: 1.5rem;
-                margin-bottom: 4px;
-            }
-        }
-
-        .board-cell.special {
-            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-            color: white;
-            border-color: #ff4757;
-            animation: pulse 2s infinite;
-        }
-
-        .board-cell.player-position {
-            position: relative;
-        }
-
-        .player-marker {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 10;
-        }
-
-        .player-marker.player-1 {
-            background: #4ecdc4;
-            top: -5px;
-            left: -5px;
-        }
-
-        .player-marker.player-2 {
-            background: #ff6b6b;
-            top: -5px;
-            right: -5px;
-        }
-
-        .board-cell.has-players {
-            animation: playerGlow 1.5s infinite alternate;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes playerGlow {
-            0% { box-shadow: 0 6px 20px rgba(78, 205, 196, 0.5); }
-            100% { box-shadow: 0 8px 25px rgba(78, 205, 196, 0.8); }
-        }
-
-        /* Dice Container */
-        .dice-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        @media (min-width: 768px) {
-            .dice-container {
-                flex-direction: row;
-                justify-content: space-around;
-                padding: 30px;
-            }
-        }
-
-        .dice {
-            width: 120px;
-            height: 120px;
-            background: conic-gradient(
-                #ff6b6b 0deg 60deg,
-                #4ecdc4 60deg 120deg,
-                #45b7d1 120deg 180deg,
-                #96ceb4 180deg 240deg,
-                #feca57 240deg 300deg,
-                #ff9ff3 300deg 360deg
-            );
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-            position: relative;
-            overflow: hidden;
-            border: 4px solid white;
-        }
-
-        @media (min-width: 768px) {
-            .dice {
-                width: 140px;
-                height: 140px;
-                font-size: 2.5rem;
-            }
-        }
-
-        .dice::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2;
-        }
-
-        .dice::after {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            width: 3px;
-            height: 20px;
-            background: white;
-            transform: translateX(-50%);
-            border-radius: 2px;
-            z-index: 3;
-        }
-
-        .dice:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .dice:active {
-            transform: translateY(-2px) scale(1.02);
-        }
-
-        .dice.rolling {
-            animation: rouletteRoll 2s ease-out;
-        }
-
-        @keyframes rouletteRoll {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(1800deg); }
-        }
-
-        .dice-label {
-            font-size: 0.9rem;
-            color: #666;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        @media (min-width: 768px) {
-            .dice-label {
-                font-size: 1.1rem;
-            }
-        }
-
-        /* Game Controls */
-        .game-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        @media (min-width: 768px) {
-            .game-controls {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-            }
-        }
-
-        .players-info {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .player-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            flex: 1;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            min-width: 200px;
-            transition: all 0.3s ease;
-        }
-
-        .player-info.active {
-            border: 3px solid #feca57;
-            box-shadow: 0 0 20px rgba(254, 202, 87, 0.5);
-            transform: scale(1.02);
-        }
-
-        .current-turn {
-            text-align: center;
-            padding: 10px;
-        }
-
-        .turn-indicator {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            background: linear-gradient(135deg, #feca57, #ff9ff3);
-            padding: 10px 20px;
-            border-radius: 25px;
-            display: inline-block;
-        }
-
-        .player-name {
-            font-size: 1rem;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .player-stats {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-        }
-
-        .action-buttons {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 1000;
-        }
-
-        @media (min-width: 768px) {
-            .action-buttons {
-                bottom: 30px;
-                right: 30px;
-                gap: 20px;
-            }
-        }
-
-        .btn {
-            padding: 15px 20px;
-            border: none;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-            min-width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @media (min-width: 768px) {
-            .btn {
-                padding: 18px 25px;
-                font-size: 1rem;
-                min-width: 70px;
-                height: 70px;
-            }
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(78, 205, 196, 0.4);
-        }
-
-        .btn-primary:active {
-            transform: translateY(-2px) scale(1.02);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
-        }
-
-        .btn-secondary:active {
-            transform: translateY(-2px) scale(1.02);
-        }
-
-        .floating-menu {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            z-index: 999;
-        }
-
-        @media (min-width: 768px) {
-            .floating-menu {
-                bottom: 120px;
-                right: 30px;
-            }
-        }
-
-        /* Game Messages */
-        .game-message {
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
-            font-weight: bold;
-            color: #2d3436;
-            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
-            transform: translateY(10px);
-            opacity: 0;
-            animation: slideIn 0.5s ease forwards;
-        }
-
-        @keyframes slideIn {
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        /* Loading States */
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #4ecdc4;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* iOS Specific Optimizations */
-        @supports (-webkit-touch-callout: none) {
-            body {
-                -webkit-touch-callout: none;
-                -webkit-text-size-adjust: 100%;
-                -webkit-font-smoothing: antialiased;
-            }
-            
-            .game-card {
-                -webkit-transform: translateZ(0);
-                transform: translateZ(0);
-            }
-            
-            .btn {
-                -webkit-transform: translateZ(0);
-                transform: translateZ(0);
-            }
-        }
-
-        /* Safe Area for iOS */
-        @supports (padding: max(0px)) {
-            .container {
-                padding-left: max(10px, env(safe-area-inset-left));
-                padding-right: max(10px, env(safe-area-inset-right));
-                padding-bottom: max(10px, env(safe-area-inset-bottom));
-            }
-            
-            .action-buttons {
-                bottom: max(20px, env(safe-area-inset-bottom));
-                right: max(20px, env(safe-area-inset-right));
-            }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 480px) {
-            .container {
-                padding: 5px;
-            }
-            
-            .game-card {
-                padding: 10px;
-                margin-bottom: 5px;
-                border-radius: 12px;
-            }
-            
-            .game-title {
-                font-size: 1.5rem;
-            }
-            
-            .subtitle {
-                font-size: 0.8rem;
-            }
-            
-            .dice {
-                width: 70px;
-                height: 70px;
-                font-size: 1.8rem;
-            }
-            
-            .board-cell {
-                font-size: 0.5rem;
-            }
-            
-            .board-cell .cell-icon {
-                font-size: 1rem;
-            }
-            
-            .btn {
-                min-width: 50px;
-                height: 50px;
-                font-size: 0.8rem;
-            }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            .board-cell {
-                border-width: 3px;
-            }
-            
-            .btn {
-                border: 2px solid rgba(255, 255, 255, 0.5);
-            }
-        }
-
-        /* Explosion and Rewards Animations */
-        .explosion {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 8rem;
-            z-index: 9999;
-            animation: explode 1.5s ease-out forwards;
-            pointer-events: none;
-        }
-
-        @keyframes explode {
-            0% {
-                transform: translate(-50%, -50%) scale(0);
-                opacity: 1;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.2);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1.5);
-                opacity: 0;
-            }
-        }
-
-        .reward {
-            position: fixed;
-            font-size: 3rem;
-            z-index: 9999;
-            animation: rewardFloat 2s ease-out forwards;
-            pointer-events: none;
-        }
-
-        @keyframes rewardFloat {
-            0% {
-                transform: translateY(0) scale(0);
-                opacity: 1;
-            }
-            50% {
-                transform: translateY(-50px) scale(1.2);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) scale(1);
-                opacity: 0;
-            }
-        }
-
-        /* Question Modal */
-        .question-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            padding: 10px;
-            box-sizing: border-box;
-            backdrop-filter: blur(5px);
-        }
-
-        .question-content {
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            border-radius: 20px;
-            padding: 20px;
-            max-width: 90%;
-            width: 100%;
-            max-height: 95%;
-            overflow-y: auto;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
-            border: 3px solid #4ecdc4;
-            position: relative;
-            transform: scale(0.9);
-            animation: modalAppear 0.5s ease forwards;
-        }
-
-        @media (min-width: 768px) {
-            .question-modal {
-                padding: 20px;
-            }
-            
-            .question-content {
-                border-radius: 25px;
-                padding: 40px;
-                max-width: 700px;
-                width: 95%;
-                max-height: 90%;
-            }
-        }
-
-        @keyframes modalAppear {
-            to {
-                transform: scale(1);
-            }
-        }
-
-        .question-content.shake {
-            animation: shake 0.6s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0) scale(1); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px) scale(1.02); }
-            20%, 40%, 60%, 80% { transform: translateX(10px) scale(1.02); }
-        }
-
-        .question-case {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-style: italic;
-            color: #1565c0;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            border-left: 4px solid #2196f3;
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            text-align: center;
-            line-height: 1.3;
-            padding: 12px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 10px;
-            border: 2px solid #4ecdc4;
-        }
-
-        .question-hint {
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #e65100;
-            text-align: center;
-            border-left: 4px solid #ff9800;
-        }
-
-        @media (min-width: 768px) {
-            .question-case {
-                padding: 20px;
-                border-radius: 15px;
-                margin-bottom: 25px;
-                font-size: 1rem;
-                line-height: 1.5;
-                border-left: 5px solid #2196f3;
-            }
-
-            .question-text {
-                font-size: 1.3rem;
-                margin-bottom: 20px;
-                line-height: 1.4;
-                padding: 15px;
-                border-radius: 12px;
-            }
-
-            .question-hint {
-                padding: 15px;
-                border-radius: 12px;
-                margin-bottom: 25px;
-                font-size: 1rem;
-                border-left: 5px solid #ff9800;
-            }
-        }
-
-        .question-options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .option-btn {
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-            font-weight: 500;
-            line-height: 1.3;
-            position: relative;
-            overflow: hidden;
-        }
-
-        @media (min-width: 768px) {
-            .option-btn {
-                padding: 20px;
-                border: 3px solid #e0e0e0;
-                border-radius: 15px;
-                text-align: center;
-                font-size: 1.1rem;
-                line-height: 1.4;
-            }
-        }
-
-        .option-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(78, 205, 196, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .option-btn:hover {
-            border-color: #4ecdc4;
-            background: linear-gradient(135deg, #f0fffe, #e6fffd);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
-        }
-
-        .option-btn:hover::before {
-            left: 100%;
-        }
-
-        .option-btn.correct {
-            border-color: #4caf50;
-            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-            color: #2e7d32;
-            animation: correctPulse 0.6s ease;
-        }
-
-        .option-btn.wrong {
-            border-color: #f44336;
-            background: linear-gradient(135deg, #ffebee, #ffcdd2);
-            color: #c62828;
-            animation: wrongShake 0.6s ease;
-        }
-
-        @keyframes correctPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes wrongShake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .question-explanation {
-            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            color: #2e7d32;
-            font-weight: 500;
-        }
-
-        .close-question {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 15px;
-            width: 100%;
-        }
-
-        .close-question:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.3);
-        }
-
-        /* Player Stats Update */
-        .player-stats {
-            font-size: 0.9rem;
-            color: #666;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-            .bubble {
-                animation: none;
-            }
-            
-            .dice.rolling {
-                animation: none;
-            }
-            
-            .board-cell.special {
-                animation: none;
-            }
-            
-            .board-cell.player-position {
-                animation: none;
-            }
-            
-            .explosion {
-                animation: none;
-            }
-            
-            .reward {
-                animation: none;
-            }
-        }
-    </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>  <div class="bubbles">
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-   <div class="bubble"></div>
-  </div>
-  <div class="container">
-   <div class="game-card">
-    <div class="header">
-     <h1 class="game-title" id="gameTitle">Jogo da Vida HPV</h1>
-     <p class="subtitle" id="subtitleText">Aprenda sobre prevenção do HPV de forma divertida!</p>
-    </div>
-        <div id="introVideoContainer" class="intro-video-container">
-     <video id="intro-video" controls preload="auto" poster="placeholder.jpg">
-      <source src="1760818263849.mp4" type="video/mp4">
-      Seu navegador não suporta vídeo HTML5.
-     </video>
-    </div>
-        <div class="game-controls">
-     <div class="players-info">
-      <div class="player-info player-1" id="player1Info">
-       <div class="player-name">
-        🔵 Jogador 1
-       </div>
-       <div class="player-stats">
-        <div class="stat-item">
-         📍 Posição: <span id="player1Position">1</span>
-        </div>
-        <div class="stat-item">
-         🪙 Moedas: <span id="player1Coins">0</span>
-        </div>
-        <div class="stat-item">
-         ✅ Acertos: <span id="player1Correct">0</span>
-        </div>
-        <div class="stat-item">
-         ❌ Erros: <span id="player1Wrong">0</span>
-        </div>
-       </div>
-      </div>
-      <div class="current-turn">
-       <div class="turn-indicator" id="turnIndicator">
-        Vez do Jogador 1
-       </div>
-      </div>
-      <div class="player-info player-2" id="player2Info">
-       <div class="player-name">
-        🔴 Jogador 2
-       </div>
-       <div class="player-stats">
-        <div class="stat-item">
-         📍 Posição: <span id="player2Position">1</span>
-        </div>
-        <div class="stat-item">
-         🪙 Moedas: <span id="player2Coins">0</span>
-        </div>
-        <div class="stat-item">
-         ✅ Acertos: <span id="player2Correct">0</span>
-        </div>
-        <div class="stat-item">
-         ❌ Erros: <span id="player2Wrong">0</span>
-        </div>
-       </div>
-      </div>
-     </div>
-    </div>
-    <div class="dice-container">
-     <div class="dice" id="dice" onclick="rollDice()">
-      🎯
-     </div>
-     <div class="dice-label" id="diceLabel">
-      Clique para girar a roleta
-     </div>
-    </div>
-    <div class="game-board" id="gameBoard">    </div>
-    <div id="gameMessage" class="game-message" style="display: none;"></div>
-   </div>
-  </div>  <div id="questionModal" class="question-modal" style="display: none;">
-   <div class="question-content">
-    <div id="questionCase" class="question-case"></div>
-    <div id="questionText" class="question-text"></div>
-    <div id="questionHint" class="question-hint"></div>
-    <div id="questionOptions" class="question-options"></div>
-    <div id="questionExplanation" class="question-explanation" style="display: none;"></div><button id="closeQuestion" class="close-question" onclick="closeQuestionModal()" style="display: none;">Continuar Jogo</button>
-   </div>
-  </div>
-  <script>
-        // --- Game configuration ---
-        const defaultConfig = {
-            game_title: "Jogo da Vida HPV",
-            subtitle_text: "Aprenda sobre prevenção do HPV de forma divertida!",
-            dice_label: "Clique para girar a roleta",
-            primary_color: "#4ecdc4",
-            secondary_color: "#ff6b6b"
-        };
-
-        // --- Game state ---
-        let gameState = {
-            currentPlayer: 1,
-            players: {
-                1: {
-                    name: "Jogador 1",
-                    position: 1,
-                    score: 0,
-                    coins: 0,
-                    stars: 0,
-                    correctAnswers: 0,
-                    wrongAnswers: 0,
-                    color: "#4ecdc4"
-                },
-                2: {
-                    name: "Jogador 2", 
-                    position: 1,
-                    score: 0,
-                    coins: 0,
-                    stars: 0,
-                    correctAnswers: 0,
-                    wrongAnswers: 0,
-                    color: "#ff6b6b"
-                }
-            },
-            isRolling: false,
-            gameCompleted: false,
-            currentQuestion: null,
-            winner: null
-        };
-
-        // --- Game data (Questions) ---
-        const boardSize = 20;
-        const questionCells = Array.from({length: boardSize}, (_, i) => i + 1); // Todas as casas têm perguntas
-        const hpvQuestions = [
-            {
-                id: "q1",
-                case: "Caso de Sofia (16 anos): Sofia notou o surgimento de pequenas 'bolinhas' ou 'verruguinhas' na região genital e está com medo.",
-                question: "Se essas lesões forem realmente verrugas de HPV (Condiloma Acuminado), qual a medida mais importante que Sofia deve tomar imediatamente?",
-                hint: "O diagnóstico correto deve sempre ser feito por um profissional de saúde.",
-                options: [
-                    "A. Comprar uma pomada sem receita na farmácia para fazer o tratamento em casa.",
-                    "B. Ignorar, pois verrugas somem sozinhas em adolescentes.",
-                    "C. Buscar imediatamente um médico (ginecologista ou urologista) para o diagnóstico correto e iniciar o tratamento das lesões.",
-                    "D. Fazer um teste de gravidez, pois verrugas são sinal de alteração hormonal."
-                ],
-                correct: 2,
-                explanation: "É fundamental procurar um profissional de saúde (Ginecologista, Urologista, Proctologista ou Dermatologista) para confirmar o diagnóstico de HPV e iniciar o tratamento adequado das lesões, evitando a progressão e a transmissão."
-            },
-            {
-                id: "q2",
-                case: "Pergunta para o jogador:",
-                question: "Qual das afirmações abaixo melhor descreve a relação entre a infecção por HPV e outras IST?",
-                hint: "O comportamento de risco que leva ao HPV expõe a outros agentes.",
-                options: [
-                    "A. Ter HPV torna a pessoa imune a outras IST, como o HIV.",
-                    "B. Não há nenhuma relação; são doenças completamente separadas.",
-                    "C. A presença de HPV indica que o indivíduo está exposto a comportamentos de risco, o que aumenta a probabilidade de contrair outra IST simultaneamente (coinfecção).",
-                    "D. O tratamento do HPV trata automaticamente todas as outras IST."
-                ],
-                correct: 2,
-                explanation: "O HPV, como as outras IST, é transmitido principalmente por contato íntimo desprotegido. Se uma pessoa se infecta com HPV, é um sinal de que ela pode estar vulnerável ou já infectada por outra IST, como HIV, Sífilis ou Hepatites."
-            },
-            {
-                id: "q3",
-                case: "Caso de Clara (25 anos): Clara está iniciando o rastreio e pergunta ao médico com que frequência ela precisa fazer o Papanicolau (preventivo) para monitorar o colo do útero.",
-                question: "Qual é o intervalo padrão recomendado no Brasil para a realização do exame Papanicolau, após dois exames anuais consecutivos negativos?",
-                hint: "Papanicolau detecta lesões precocemente, mas não precisa ser anual na maioria dos casos.",
-                options: [
-                    "A. A cada 6 meses (semestralmente).",
-                    "B. A cada 3 anos (trienalmente).",
-                    "C. A cada 10 anos.",
-                    "D. Apenas quando tiver relações sexuais com um novo parceiro."
-                ],
-                correct: 1,
-                explanation: "Após dois resultados anuais normais consecutivos, o Papanicolau deve ser repetido a cada três anos. Essa periodicidade é suficiente para detectar lesões precursoras do câncer do colo do útero a tempo de tratamento."
-            },
-            {
-                id: "q4",
-                case: "Pergunta para o jogador:",
-                question: "Por que a vacinação contra o HPV em meninos é considerada tão importante quanto em meninas para a saúde pública?",
-                hint: "Pense no papel dos homens na cadeia de transmissão e no risco de câncer masculino.",
-                options: [
-                    "A. Meninos só tomam a vacina para prevenir o câncer de próstata.",
-                    "B. Para proteger os meninos contra o câncer de pênis, ânus e orofaringe, e para reduzir a circulação do vírus na população, protegendo indiretamente as meninas.",
-                    "C. A vacina em meninos só serve para prevenir verrugas genitais, o risco de câncer é muito baixo.",
-                    "D. Os meninos só precisam tomar a vacina se a parceira já estiver infectada."
-                ],
-                correct: 1,
-                explanation: "A vacinação masculina protege diretamente contra cânceres (pênis, ânus, orofaringe) e, ao reduzir o número de portadores, diminui a transmissão viral, criando uma 'imunidade de rebanho' que beneficia as mulheres."
-            },
-            {
-                id: "q5",
-                case: "Caso de Daniel (28 anos): Daniel está preocupado com o HPV e não tem verrugas. Ele quer saber qual é o exame de rotina mais eficaz para diagnosticar o HPV em homens assintomáticos.",
-                question: "Qual é a recomendação atual da maioria dos órgãos de saúde para o rastreamento de HPV em homens que não apresentam lesões visíveis?",
-                hint: "O foco não é o exame, mas o acompanhamento e a vacina.",
-                options: [
-                    "A. Fazer o exame de Papanicolau (preventivo) adaptado para homens.",
-                    "B. Não há exame de rotina universalmente recomendado para homens assintomáticos; o foco é a vacinação e a observação de lesões (verrugas).",
-                    "C. Fazer um exame de sangue a cada 6 meses.",
-                    "D. Fazer uma biópsia preventiva do pênis anualmente."
-                ],
-                correct: 1,
-                explanation: "Atualmente, não há um exame de rastreamento de HPV em homens tão eficaz e padronizado quanto o Papanicolau para mulheres. O foco médico principal é na vacinação em idade jovem e no exame clínico minucioso em caso de aparecimento de lesões."
-            },
-            {
-                id: "q6",
-                case: "Pergunta para o jogador:",
-                question: "O que significa o termo 'lesões precursoras de câncer' (NIC 1, NIC 2, NIC 3) e por que elas são o alvo principal do Papanicolau?",
-                hint: "Essas lesões são um estágio intermediário entre a infecção e o câncer.",
-                options: [
-                    "A. São as verrugas genitais em estágio inicial.",
-                    "B. São alterações nas células causadas pelo HPV que, se não tratadas, podem evoluir para câncer (não são câncer ainda), e são detectáveis no Papanicolau.",
-                    "C. São tumores malignos que já se espalharam.",
-                    "D. São inflamações simples que desaparecem com água e sabão."
-                ],
-                correct: 1,
-                explanation: "Lesões precursoras são mudanças nas células do colo do útero causadas pelo HPV. Elas são a chance de tratar a condição antes que ela se torne um câncer, e é por isso que o Papanicolau, que as detecta, é tão vital."
-            },
-            {
-                id: "q7",
-                case: "Caso de Carol (21 anos): Carol descobriu que está com HPV. Ela pergunta: 'Mesmo já tendo o vírus, a vacina ainda pode me ajudar?'",
-                question: "Se uma pessoa já está infectada com um tipo de HPV, a vacina ainda pode ser benéfica?",
-                hint: "Pense na proteção contra os outros tipos que a vacina oferece.",
-                options: [
-                    "A. Não, a vacina só tem efeito se for tomada antes do primeiro contato sexual.",
-      244                     "B. Sim, porque a vacina protege contra os outros tipos de HPV de alto risco que a pessoa ainda não adquiriu.",
-                    "C. Sim, porque a vacina atua como um remédio para curar a infecção atual.",
-                    "D. Apenas se a pessoa tiver mais de 30 anos."
-                ],
-                correct: 1,
-                explanation: "A vacina é preventiva. Mesmo que o indivíduo já tenha um tipo de HPV, a vacina previne a infecção por outros tipos virais presentes na formulação, protegendo contra múltiplas infecções futuras."
-            },
-            {
-                id: "q8",
-                case: "Caso de Ana (19 anos): Ana quer saber qual é a idade ideal para tomar a vacina contra HPV.",
-                question: "Qual é a faixa etária recomendada pelo Ministério da Saúde para vacinação gratuita contra HPV no SUS?",
-                hint: "A vacina é mais eficaz quando aplicada antes do início da vida sexual.",
-                options: [
-                    "A. Apenas para meninas de 9 a 14 anos.",
-                    "B. Para meninas de 9 a 14 anos e meninos de 11 a 14 anos.",
-                    "C. Apenas para pessoas acima de 18 anos.",
-                    "D. Para todas as idades, sem restrição."
-                ],
-                correct: 1,
-                explanation: "O SUS oferece a vacina gratuitamente para meninas de 9 a 14 anos e meninos de 11 a 14 anos, pois a eficácia é maior quando aplicada antes do início da atividade sexual."
-            },
-            {
-                id: "q9",
-                case: "Pergunta para o jogador:",
-                question: "Quantas doses da vacina contra HPV são necessárias para uma proteção adequada?",
-                hint: "O esquema vacinal mudou nos últimos anos para facilitar a adesão.",
-                options: [
-                    "A. Uma dose única é suficiente.",
-                    "B. Duas doses com intervalo de 6 meses.",
-                    "C. Três doses obrigatoriamente.",
-                    "D. Quatro doses anuais."
-                ],
-                correct: 1,
-                explanation: "Atualmente, o esquema recomendado é de duas doses da vacina contra HPV, com intervalo de 6 meses entre elas, para pessoas de 9 a 14 anos. Para pessoas acima de 15 anos, são recomendadas três doses."
-            },
-            {
-                id: "q10",
-                case: "Caso de Marcos (22 anos): Marcos descobriu que tem HPV e quer saber se pode transmitir o vírus mesmo sem ter sintomas.",
-                question: "É possível transmitir HPV mesmo sem apresentar verrugas ou outros sintomas visíveis?",
-                hint: "A maioria das infecções por HPV são assintomáticas.",
-                options: [
-                    "A. Não, só transmite quando há verrugas visíveis.",
-                    "B. Sim, a transmissão pode ocorrer mesmo sem sintomas visíveis.",
-                    "C. Só transmite durante crises de dor.",
-                    "D. Apenas mulheres transmitem sem sintomas."
-                ],
-                correct: 1,
-                explanation: "Sim, o HPV pode ser transmitido mesmo quando a pessoa não apresenta sintomas visíveis. A maioria das infecções por HPV são assintomáticas, mas ainda assim podem ser transmitidas através do contato íntimo."
-            },
-            {
-                id: "q11",
-                case: "Pergunta para o jogador:",
-                question: "Qual é a principal forma de transmissão do HPV?",
-                hint: "O HPV é uma infecção sexualmente transmissível.",
-                options: [
-                    "A. Através do ar, como gripe.",
-                    "B. Contato sexual (vaginal, anal ou oral).",
-                    "C. Compartilhamento de utensílios de cozinha.",
-                    "D. Picada de mosquito."
-                ],
-                correct: 1,
-                explanation: "O HPV é transmitido principalmente através do contato sexual (vaginal, anal ou oral). O vírus infecta a pele e mucosas, sendo uma das infecções sexualmente transmissíveis mais comuns."
-            },
-            {
-                id: "q12",
-                case: "Caso de Júlia (26 anos): Júlia está grávida e descobriu que tem HPV. Ela está preocupada com o bebê.",
-                question: "Uma mulher grávida com HPV pode transmitir o vírus para o bebê durante o parto?",
-                hint: "A transmissão vertical é possível, mas rara.",
-                options: [
-                    "A. Não, é impossível transmitir HPV para o bebê.",
-                    "B. Sim, mas é muito raro. O bebê pode desenvolver papilomatose respiratória.",
-                    "C. Sempre transmite, causando malformações.",
-                    "D. Só transmite se for cesariana."
-                ],
-                correct: 1,
-                explanation: "A transmissão do HPV da mãe para o bebê durante o parto é possível, mas muito rara. Quando ocorre, pode causar papilomatose respiratória recorrente no bebê, uma condição tratável."
-            },
-            {
-                id: "q13",
-                case: "Pergunta para o jogador:",
-                question: "Qual exame é considerado o mais importante para detectar alterações causadas pelo HPV no colo do útero?",
-                hint: "É um exame de rotina que toda mulher deve fazer regularmente.",
-                options: [
-                    "A. Ultrassom pélvico.",
-                    "B. Exame de sangue.",
-                    "C. Papanicolau (exame citopatológico).",
-                    "D. Raio-X do abdômen."
-                ],
-                correct: 2,
-                explanation: "O Papanicolau (exame citopatológico) é o principal exame para detectar alterações nas células do colo do útero causadas pelo HPV, permitindo o diagnóstico precoce de lesões precursoras do câncer."
-            },
-            {
-                id: "q14",
-                case: "Caso de Pedro (30 anos): Pedro quer saber se homens também podem desenvolver câncer por causa do HPV.",
-                question: "Quais tipos de câncer o HPV pode causar em homens?",
-                hint: "O HPV não afeta apenas as mulheres.",
-                options: [
-                    "A. Apenas câncer de próstata.",
-                    "B. Câncer de pênis, ânus e orofaringe (garganta).",
-                    "C. Apenas câncer de pele.",
-                    "D. HPV não causa câncer em homens."
-                ],
-                correct: 1,
-                explanation: "O HPV pode causar câncer de pênis, ânus e orofaringe (garganta) em homens. Por isso a vacinação masculina também é importante para a prevenção desses cânceres."
-            },
-            {
-                id: "q15",
-                case: "Pergunta para o jogador:",
-                question: "O uso de preservativo (camisinha) previne 100% a transmissão do HPV?",
-                hint: "O HPV infecta áreas que podem não ser cobertas pelo preservativo.",
-                options: [
-                    "A. Sim, previne 100% se usado corretamente.",
-                    "B. Não previne nada, é inútil contra HPV.",
-                    "C. Reduz significativamente o risco, mas não previne 100%.",
-                    "D. Só previne em mulheres."
-                ],
-                correct: 2,
-                explanation: "O preservativo reduz significativamente o risco de transmissão do HPV, mas não previne 100%, pois o vírus pode infectar áreas da pele não cobertas pela camisinha. Ainda assim, seu uso é fundamental."
-            },
-            // 15 Perguntas com IST Atualizada (início do bloco)
-            {
-                id: "q16_new",
-                case: "Pergunta para o jogador:",
-                question: "O vírus HPV é dividido em dois grupos: Baixo Risco e Alto Risco. Qual é a principal diferença entre eles?",
-                hint: "Pense na consequência mais grave que o vírus pode causar.",
-                options: [
-                    "A. Baixo Risco causa apenas verrugas; Alto Risco está associado a lesões que podem evoluir para câncer.",
-                    "B. Baixo Risco afeta apenas a pele; Alto Risco afeta apenas as mucosas.",
-                    "C. Baixo Risco é transmitido pela água; Alto Risco é transmitido por contato íntimo.",
-                    "D. Apenas o Baixo Risco pode ser curado pelo sistema imunológico."
-                ],
-                correct: 0,
-                explanation: "O HPV de Baixo Risco (tipos 6 e 11) causa verrugas genitais (condilomas). O HPV de Alto Risco (tipos 16, 18 e outros) causa lesões silenciosas que, se não tratadas, podem se transformar em câncer."
-            },
-            {
-                id: "q17_new",
-                case: "Caso de Sofia (16 anos): Sofia notou o surgimento de pequenas 'bolinhas' ou 'verruguinhas' na região genital e está com medo.",
-                question: "Se essas lesões forem realmente verrugas de HPV (Condiloma Acuminado), qual a medida mais importante que Sofia deve tomar imediatamente?",
-                hint: "O diagnóstico correto deve sempre ser feito por um profissional de saúde.",
-                options: [
-                    "A. Comprar uma pomada sem receita na farmácia para fazer o tratamento em casa.",
-                    "B. Ignorar, pois verrugas somem sozinhas em adolescentes.",
-                    "C. Buscar imediatamente um médico (ginecologista ou urologista) para o diagnóstico correto e iniciar o tratamento das lesões.",
-                    "D. Fazer um teste de gravidez, pois verrugas são sinal de alteração hormonal."
-                ],
-                correct: 2,
-                explanation: "É fundamental procurar um profissional de saúde (Ginecologista, Urologista, Proctologista ou Dermatologista) para confirmar o diagnóstico de HPV e iniciar o tratamento adequado das lesões, evitando a progressão e a transmissão."
-            },
-            {
-                id: "q18_new",
-                case: "Caso de Clara (25 anos): Clara está iniciando o rastreio e pergunta ao médico com que frequência ela precisa fazer o Papanicolau (preventivo) para monitorar o colo do útero.",
-                question: "Qual é o intervalo padrão recomendado no Brasil para a realização do exame Papanicolau, após dois exames anuais consecutivos negativos?",
-                hint: "Papanicolau detecta lesões precocemente, mas não precisa ser anual na maioria dos casos.",
-                options: [
-                    "A. A cada 6 meses (semestralmente).",
-                    "B. A cada 3 anos (trienalmente).",
-                    "C. A cada 10 anos.",
-                    "D. Apenas quando tiver relações sexuais com um novo parceiro."
-                ],
-                correct: 1,
-                explanation: "Após dois resultados anuais normais consecutivos, o Papanicolau deve ser repetido a cada três anos. Essa periodicidade é suficiente para detectar lesões precursoras do câncer do colo do útero a tempo de tratamento."
-            },
-            {
-                id: "q19_new",
-                case: "Pergunta para o jogador:",
-                question: "Por que a vacinação contra o HPV em meninos é considerada tão importante quanto em meninas para a saúde pública?",
-                hint: "Pense no papel dos homens na cadeia de transmissão e no risco de câncer masculino.",
-                options: [
-                    "A. Meninos só tomam a vacina para prevenir o câncer de próstata.",
-                    "B. Para proteger os meninos contra o câncer de pênis, ânus e orofaringe, e para reduzir a circulação do vírus na população, protegendo indiretamente as meninas.",
-                    "C. A vacina em meninos só serve para prevenir verrugas genitais, o risco de câncer é muito baixo.",
-                    "D. Os meninos só precisam tomar a vacina se a parceira já estiver infectada."
-                ],
-                correct: 1,
-                explanation: "A vacinação masculina protege diretamente contra cânceres (pênis, ânus, orofaringe) e, ao reduzir o número de portadores, diminui a transmissão viral, criando uma 'imunidade de rebanho' que beneficia as mulheres."
-            },
-            {
-                id: "q20_new",
-                case: "Caso de Lucas (20 anos): Lucas já teve uma infecção por HPV que seu corpo eliminou. Ele pergunta ao médico se ele pode ter o vírus novamente.",
-                question: "Uma pessoa que já teve uma infecção por HPV pode ser reinfectada (ou infectada por um tipo diferente de HPV) no futuro?",
-                hint: "Existem mais de 150 tipos de HPV.",
-                options: [
-                    "A. Não, uma vez que a infecção é eliminada, o corpo fica imune para sempre contra o vírus.",
-                    "B. Sim, pois a proteção é específica para o tipo que causou a infecção anterior, e existem muitos outros tipos de HPV circulando.",
-                    "C. Sim, mas apenas se a pessoa tiver uma doença autoimune muito grave.",
-                    "D. Não, a vacina impede qualquer reinfecção de acontecer."
-                ],
-                correct: 1,
-                explanation: "O sistema imunológico cria proteção principalmente para o tipo específico de HPV que causou a infecção. Como existem muitos tipos de HPV, a pessoa pode ser facilmente infectada por um tipo diferente no futuro."
-            },
-            {
-                id: "q21_new",
-                case: "Caso de Bia (24 anos): Bia nunca tomou a vacina do HPV na adolescência. Ela pergunta se ainda vale a pena se vacinar na idade adulta.",
-                question: "Se uma pessoa adulta (fora da faixa etária prioritária, mas dentro da faixa estendida) nunca foi vacinada, a vacina do HPV ainda é recomendada?",
-                hint: "O benefício é a prevenção dos tipos que a pessoa *ainda não* pegou.",
-                options: [
-                    "A. Não, pois a vacina é ineficaz após os 18 anos.",
-                    "B. Não, pois se ela já teve contato, a vacina não tem utilidade.",
-                    "C. Sim, a vacina ainda é recomendada, pois protege contra os tipos de HPV que a pessoa ainda não adquiriu, mesmo que ela já tenha tido contato com outro tipo.",
-                    "D. Sim, mas ela precisa fazer uma cirurgia para remover o vírus antes de se vacinar."
-                ],
-                correct: 2,
-                explanation: "Mesmo que um adulto já tenha tido contato com um ou dois tipos de HPV, a vacina continua protegendo contra os outros tipos perigosos contidos nela que a pessoa ainda não foi exposta. O benefício preventivo ainda é alto."
-            },
-            {
-                id: "q22_new",
-                case: "Caso de Renata (28 anos): Renata está grávida e descobriu que tem verrugas genitais causadas pelo HPV.",
-                question: "Qual é a principal preocupação médica em relação às verrugas de HPV durante a gravidez?",
-                hint: "Pense no risco de transmissão para o bebê.",
-                options: [
-                    "A. A principal preocupação é que o HPV cause aborto espontâneo.",
-                    "B. O risco de que as verrugas cresçam muito e dificultem o parto normal, além da possibilidade de transmissão do vírus ao bebê durante a passagem pelo canal de parto.",
-                    "C. Não há preocupação, pois o HPV não atravessa a placenta.",
-                    "D. O HPV obriga a mãe a fazer uma cesárea, mesmo que não haja outras complicações."
-                ],
-                correct: 1,
-                explanation: "As verrugas podem crescer rapidamente devido às mudanças hormonais na gravidez, o que pode atrapalhar o parto vaginal. Há também o risco de transmissão vertical, que pode causar papilomatose respiratória no recém-nascido."
-            },
-            {
-                id: "q23_new",
-                case: "Pergunta para o jogador:",
-                question: "Qual das afirmações abaixo melhor descreve a relação entre a infecção por HPV e outras IST?",
-                hint: "O comportamento de risco que leva ao HPV expõe a outros agentes.",
-                options: [
-                    "A. Ter HPV torna a pessoa imune a outras IST, como o HIV.",
-                    "B. Não há nenhuma relação; são doenças completamente separadas.",
-                    "C. A presença de HPV indica que o indivíduo está exposto a comportamentos de risco, o que aumenta a probabilidade de contrair outra IST simultaneamente (coinfecção).",
-                    "D. O tratamento do HPV trata automaticamente todas as outras IST."
-                ],
-                correct: 2,
-                explanation: "O HPV, como as outras IST, é transmitido principalmente por contato íntimo desprotegido. Se uma pessoa se infecta com HPV, é um sinal de que ela pode estar vulnerável ou já infectada por outra IST, como HIV, Sífilis ou Hepatites."
-            },
-            {
-                id: "q24_new",
-                case: "Caso de Daniel (28 anos): Daniel está preocupado com o HPV e não tem verrugas. Ele quer saber qual é o exame de rotina mais eficaz para diagnosticar o HPV em homens assintomáticos.",
-                question: "Qual é a recomendação atual da maioria dos órgãos de saúde para o rastreamento de HPV em homens que não apresentam lesões visíveis?",
-                hint: "O foco não é o exame, mas o acompanhamento e a vacina.",
-                options: [
-                    "A. Fazer o exame de Papanicolau (preventivo) adaptado para homens.",
-                    "B. Não há exame de rotina universalmente recomendado para homens assintomáticos; o foco é a vacinação e a observação de lesões (verrugas).",
-                    "C. Fazer um exame de sangue a cada 6 meses.",
-                    "D. Fazer uma biópsia preventiva do pênis anualmente."
-                ],
-                correct: 1,
-                explanation: "Atualmente, não há um exame de rastreamento de HPV em homens tão eficaz e padronizado quanto o Papanicolau para mulheres. O foco médico principal é na vacinação em idade jovem e no exame clínico minucioso em caso de aparecimento de lesões."
-            },
-            {
-                id: "q25_new",
-                case: "Pergunta para o jogador:",
-                question: "O que significa o termo 'lesões precursoras de câncer' (NIC 1, NIC 2, NIC 3) e por que elas são o alvo principal do Papanicolau?",
-                hint: "Essas lesões são um estágio intermediário entre a infecção e o câncer.",
-                options: [
-                    "A. São as verrugas genitais em estágio inicial.",
-                    "B. São alterações nas células causadas pelo HPV que, se não tratadas, *podem* evoluir para câncer (não são câncer ainda), e são detectáveis no Papanicolau.",
-                    "C. São tumores malignos que já se espalharam.",
-                    "D. São inflamações simples que desaparecem com água e sabão."
-                ],
-                correct: 1,
-                explanation: "Lesões precursoras são mudanças nas células do colo do útero causadas pelo HPV. Elas são a chance de tratar a condição antes que ela se torne um câncer, e é por isso que o Papanicolau, que as detecta, é tão vital."
-            },
-            {
-                id: "q26_new",
-                case: "Caso de Carol (21 anos): Carol descobriu que está com HPV. Ela pergunta: 'Mesmo já tendo o vírus, a vacina ainda pode me ajudar?'",
-                question: "Se uma pessoa já está infectada com um tipo de HPV, a vacina ainda pode ser benéfica?",
-                hint: "Pense na proteção contra os outros tipos que a vacina oferece.",
-                options: [
-                    "A. Não, a vacina só tem efeito se for tomada antes do primeiro contato sexual.",
-                    "B. Sim, porque a vacina protege contra os outros tipos de HPV de alto risco que a pessoa ainda não adquiriu.",
-                    "C. Sim, porque a vacina atua como um remédio para curar a infecção atual.",
-                    "D. Apenas se a pessoa tiver mais de 30 anos."
-                ],
-                correct: 1,
-                explanation: "A vacina é preventiva. Mesmo que o indivíduo já tenha um tipo de HPV, a vacina previne a infecção por outros tipos virais presentes na formulação, protegendo contra múltiplas infecções futuras."
-            },
-            {
-                id: "q27_new",
-                case: "Caso de Rafa (18 anos): Rafa está passando por um período de muito estresse e dormindo pouco. Ele pergunta se isso pode afetar a infecção por HPV.",
-                question: "Qual é a relação do estresse, falta de sono ou má alimentação com o HPV?",
-                hint: "O estresse afeta diretamente sua 'equipe de defesa'.",
-                options: [
-                    "A. Estresse e sono não têm relação com a atividade do vírus.",
-                    "B. O estresse e a má alimentação podem enfraquecer o sistema imunológico, dificultando a eliminação natural do vírus e favorecendo o aparecimento de lesões.",
-                    "C. O estresse faz o vírus ser transmitido mais rapidamente.",
-                    "D. Apenas o uso de álcool e fumo tem impacto, não o estresse."
-                ],
-                correct: 1,
-                explanation: "O sistema imunológico é essencial para combater e eliminar o HPV. Fatores como estresse crônico, falta de sono e má nutrição diminuem a eficácia imunológica, permitindo que o vírus permaneça ativo ou se manifeste em lesões."
-            },
-            {
-                id: "q28_new",
-                case: "Pergunta para o jogador:",
-                question: "Qual é o câncer mais frequentemente causado pelo HPV em mulheres e que é o principal alvo do exame Papanicolau e da vacinação?",
-                hint: "O nome do exame já dá uma dica do local.",
-                options: [
-                    "A. Câncer de mama.",
-                    "B. Câncer de ovário.",
-                    "C. Câncer do colo do útero (ou cervical).",
-                    "D. Câncer de pele na região genital."
-                ],
-                correct: 2,
-                explanation: "O Câncer do Colo do Útero (Câncer Cervical) é o mais comum associado ao HPV em mulheres e é o foco principal da prevenção secundária (Papanicolau) e primária (Vacina)."
-            },
-            {
-                id: "q29_new",
-                case: "Caso de Gabi (23 anos): Gabi fez um tratamento para lesões de HPV e agora o Papanicolau deu normal. Ela pergunta se pode ter certeza de que o vírus foi totalmente eliminado.",
-                question: "Se o Papanicolau de Gabi deu normal após o tratamento, o que isso realmente significa em relação à presença do HPV?",
-                hint: "O exame detecta lesões ativas, não o vírus inativo.",
-                options: [
-                    "A. O Papanicolau normal significa que o vírus foi completamente eliminado do corpo e não há mais risco de transmissão.",
-                    "B. Significa que não há lesões ativas (células anormais) naquele momento, mas o vírus pode ainda estar em estado latente (dormente) no organismo.",
-                    "C. Significa que ela agora está imune e não precisa mais de exames.",
-                    "D. Significa que ela deve parar de usar camisinha."
-                ],
-                correct: 1,
-                explanation: "O Papanicolau detecta alterações celulares (lesões ativas). Um resultado normal indica que o tratamento foi eficaz ou que o vírus está sob controle. O HPV pode permanecer latente (dormente) no organismo por anos e o acompanhamento regular é indispensável."
-            },
-            {
-                id: "q30_new",
-                case: "Pergunta para o jogador:",
-                question: "Qual dos fatores abaixo é considerado um dos **cofatores** mais significativos (além do HPV) para o desenvolvimento de câncer do colo do útero?",
-                hint: "É um hábito que enfraquece a imunidade local.",
-                options: [
-                    "A. Consumo excessivo de café.",
-                    "B. Uso de roupas apertadas e sintéticas.",
-                    "C. O hábito de fumar (tabagismo).",
-                    "D. Beber água gelada frequentemente."
-                ],
-                correct: 2,
-                explanation: "O tabagismo é um co-fator de risco muito importante. As substâncias tóxicas do cigarro enfraquecem a imunidade local no colo do útero, dificultando a eliminação do HPV pelo organismo e favorecendo a progressão das lesões para câncer."
-            },
-            {
-                id: "q31_new",
-                case: "Caso de Bianca (15 anos): Bianca quer saber se a vacina do HPV a protege contra todos os tipos de câncer e IST.",
-                question: "A vacina quadrivalente ou nonavalente contra HPV oferece proteção contra todos os tipos de vírus e todas as IST?",
-                hint: "A vacina é específica para alguns tipos de HPV, mas não para todas as IST.",
-                options: [
-                    "A. Sim, a vacina protege contra todos os tipos de HPV e todos os cânceres genitais.",
-                    "B. Não, protege apenas contra os tipos de HPV contidos na vacina e não contra outras IST, como o HIV ou a Sífilis.",
-                    "C. Protege contra o HPV e o HIV, mas não contra outras IST bacterianas.",
-                    "D. Protege 100% contra o Câncer do Colo do Útero, mas nada mais."
-                ],
-                correct: 1,
-                explanation: "A vacina protege contra os tipos de HPV mais perigosos (que causam a maioria dos cânceres), mas não contra todos os tipos existentes, nem contra outras IST. Por isso, o uso de preservativo e exames de rotina são essenciais."
-            },
-            {
-                id: "q32_new",
-                case: "Caso de Carlos (20 anos): Carlos tem verrugas genitais e está preocupado com o futuro. Ele pergunta se as verrugas são um sinal de que ele terá câncer.",
-                question: "Verrugas genitais causadas pelo HPV de Baixo Risco (tipos 6 e 11) têm um risco alto de se transformarem em câncer?",
-                hint: "Verrugas são causadas pelo HPV de 'Baixo Risco'.",
-                options: [
-                    "A. Sim, elas são o primeiro estágio do câncer.",
-                    "B. Não, o risco de se tornarem câncer é baixíssimo, pois são causadas pelos tipos de Baixo Risco.",
-                    "C. Sim, mas só em homens.",
-                    "D. Elas nunca se transformam em câncer."
-                ],
-                correct: 1,
-                explanation: "As verrugas genitais são causadas principalmente pelos tipos 6 e 11, que são de Baixo Risco. O risco de elas se transformarem em câncer é muito baixo, mas o tratamento ainda é importante para evitar a transmissão e o desconforto."
-            },
-            {
-                id: "q33_new",
-                case: "Caso de João (25 anos): João ouviu que o HPV se 'cura' sozinho e que não é preciso se preocupar.",
-                question: "Por que não se deve 'esperar a cura' do HPV sem acompanhamento médico?",
-                hint: "O perigo está no que não se pode ver.",
-                options: [
-                    "A. Porque a cura nunca acontece em adultos.",
-                    "B. Porque as lesões de Alto Risco são assintomáticas e podem evoluir para câncer silenciosamente se não forem detectadas por exames de rotina.",
-                    "C. Porque é ilegal não tratar o HPV.",
-                    "D. Porque o tratamento do HPV é muito rápido e indolor."
-                ],
-                correct: 1,
-                explanation: "Embora a maioria das infecções seja eliminada pelo corpo, as infecções por tipos de Alto Risco podem causar lesões precursoras invisíveis. O acompanhamento médico e exames como o Papanicolau são essenciais para detectá-las a tempo de evitar o câncer."
-            },
-            {
-                id: "q34_new",
-                case: "Caso de Laura (20 anos): Laura quer saber se existe uma cura definitiva para o vírus HPV.",
-                question: "Qual a melhor forma de se referir à 'cura' do HPV no sentido médico?",
-                hint: "O processo é interno e depende do sistema imunológico.",
-                options: [
-                    "A. Erradicação total do vírus com tratamento antiviral.",
-                    "B. Eliminação do vírus pelo sistema imunológico, conhecida como clareamento viral.",
-                    "C. Cirurgia para remover todo o tecido infectado.",
-                    "D. Uso contínuo de imunomoduladores."
-                ],
-                correct: 1,
-                explanation: "A 'cura' do HPV, na maioria dos casos, acontece quando o sistema imunológico elimina o vírus de forma espontânea, processo conhecido tecnicamente como clareamento viral. Não há um medicamento que cure o vírus."
-            },
-            {
-                id: "q35_new",
-                case: "Pergunta para o jogador:",
-                question: "O que o HPV tem em comum com a Hepatite B e o HIV?",
-                hint: "Pense na categoria de transmissão.",
-                options: [
-                    "A. Todos são causados por bactérias.",
-                    "B. Todos são classificados como IST.",
-                    "C. Todos são curáveis com antibióticos.",
-                    "D. Todos têm vacinas de prevenção oferecidas no SUS para todas as idades."
-                ],
-                correct: 1,
-                explanation: "HPV, Hepatite B e HIV são todos classificados como Infecções Sexualmente Transmissíveis (IST), sendo a transmissão sexual a principal via comum entre eles."
-            },
-            {
-                id: "q36_new",
-                case: "Caso de Felipe (17 anos): Felipe começou a namorar. Ele pergunta qual é o método de prevenção mais completo.",
-                question: "Qual é a estratégia de prevenção mais completa contra o HPV e outras IST?",
-                hint: "A prevenção deve ser combinada.",
-                options: [
-                    "A. Apenas o uso do preservativo.",
-                    "B. Apenas a vacinação.",
-                    "C. A combinação de vacinação, uso correto e constante do preservativo e exames de rotina.",
-                    "D. Apenas ter um único parceiro sexual."
-                ],
-                correct: 2,
-                explanation: "A prevenção mais eficaz é a combinada. A vacina é a prevenção primária (contra o vírus), o preservativo reduz a transmissão de todas as IST e os exames de rotina (Papanicolau) são a prevenção secundária (contra o câncer)."
-            },
-            {
-                id: "q37_new",
-                case: "Caso de Marina (22 anos): Marina está com HPV e quer saber como aumentar as chances de seu corpo eliminar o vírus.",
-                question: "Qual medida NÃO é recomendada para fortalecer o sistema imunológico e ajudar no clareamento viral do HPV?",
-                hint: "Pense em hábitos que enfraquecem o corpo.",
-                options: [
-                    "A. Manter uma alimentação equilibrada e rica em vitaminas.",
-                    "B. Praticar exercícios físicos regularmente.",
-                    "C. Parar de fumar, se for fumante.",
-                    "D. Ingerir bebidas alcoólicas em excesso para 'matar' o vírus."
-                ],
-                correct: 3,
-                explanation: "Ingerir álcool em excesso e fumar são hábitos que enfraquecem o sistema imunológico, dificultando o clareamento viral e aumentando o risco de persistência do vírus e desenvolvimento de lesões."
-            },
-            {
-                id: "q38_new",
-                case: "Pergunta para o jogador:",
-                question: "O HPV de Alto Risco afeta a fertilidade em homens ou mulheres?",
-                hint: "O vírus se instala nas mucosas, mas não compromete diretamente a função reprodutiva.",
-                options: [
-                    "A. Sim, sempre causa infertilidade.",
-                    "B. Apenas em mulheres, causando cistos ovarianos.",
-                    "C. Não, o HPV não afeta diretamente a fertilidade.",
-                    "D. Afeta apenas a libido, mas não a fertilidade."
-                ],
-                correct: 2,
-                explanation: "O HPV, mesmo os tipos de Alto Risco, não afeta diretamente a fertilidade. No entanto, o tratamento de lesões precursoras avançadas pode afetar a capacidade de ter filhos, reforçando a importância da detecção precoce."
-            },
-            {
-                id: "q39_new",
-                case: "Caso de Gabriel (20 anos): Gabriel viu verrugas na região perianal (próxima ao ânus).",
-                question: "A presença de verrugas perianais significa necessariamente que a transmissão ocorreu por sexo anal?",
-                hint: "O HPV é um vírus de contato cutâneo.",
-                options: [
-                    "A. Sim, sempre é transmitido por sexo anal.",
-                    "B. Não, o vírus pode ser transmitido por contato manual-genital ou extensão de áreas próximas.",
-                    "C. Sim, mas só se houver sangue.",
-                    "D. Não, o HPV perianal é sempre pego em banheiros públicos."
-                ],
-                correct: 1,
-                explanation: "O HPV é um vírus de contato. Embora o sexo anal seja uma via de transmissão comum para o HPV perianal, o contágio também pode ocorrer pelo contato pele-a-pele em áreas adjacentes ou pela transferência do vírus pelas mãos (contato manual-genital/anal)."
-            },
-            {
-                id: "q40_new",
-                case: "Pergunta para o jogador:",
-                question: "Se uma adolescente tomar a vacina contra HPV, ela ainda precisa usar preservativo nas relações sexuais futuras?",
-                hint: "A vacina não protege contra todas as IST.",
-                options: [
-                    "A. Não, a vacina é a única proteção necessária.",
-                    "B. Sim, pois o preservativo protege contra o HIV e outras IST que a vacina não cobre.",
-                    "C. Não, a camisinha é só para evitar gravidez.",
-                    "D. Sim, mas só nas primeiras 3 relações."
-                ],
-                correct: 1,
-                explanation: "Sim, o uso de preservativo é fundamental. A vacina protege contra os tipos mais perigosos de HPV e alguns cânceres, mas não oferece proteção contra outras IST importantes, como HIV, Sífilis, Clamídia, etc."
-            }
-        ];
-
-        // Data SDK handler
-        const dataHandler = {
-            onDataChanged(data) {
-                console.log('Game data updated:', data);
-            }
-        };
-
-        // Element SDK configuration
-        async function onConfigChange(config) {
-            const gameTitle = document.getElementById('gameTitle');
-            const subtitleText = document.getElementById('subtitleText');
-            const diceLabel = document.getElementById('diceLabel');
-
-            if (gameTitle) {
-                gameTitle.textContent = config.game_title || defaultConfig.game_title;
-            }
-            if (subtitleText) {
-                subtitleText.textContent = config.subtitle_text || defaultConfig.subtitle_text;
-            }
-            if (diceLabel) {
-                diceLabel.textContent = config.dice_label || defaultConfig.dice_label;
-            }
-        }
-
-        function mapToCapabilities(config) {
-            return {
-                recolorables: [
-                    {
-                        get: () => config.primary_color || defaultConfig.primary_color,
-                        set: (value) => {
-                            if (window.elementSdk) {
-    1403                             window.elementSdk.setConfig({ primary_color: value });
-                            }
-                        }
-                    },
-                    {
-                        get: () => config.secondary_color || defaultConfig.secondary_color,
-                        set: (value) => {
-                            if (window.elementSdk) {
-                                window.elementSdk.setConfig({ secondary_color: value });
-                            }
-                        }
-                    }
-                ],
-                borderables: [],
-                fontEditable: undefined,
-                fontSizeable: undefined
-            };
-        }
-
-        function mapToEditPanelValues(config) {
-            return new Map([
-                ["game_title", config.game_title || defaultConfig.game_title],
-                ["subtitle_text", config.subtitle_text || defaultConfig.subtitle_text],
-                ["dice_label", config.dice_label || defaultConfig.dice_label]
-            ]);
-        }
-
-        // Health icons for board cells
-        const healthIcons = ['🏥', '💊', '🩺', '💉', '🧬', '🔬', '❤️', '🛡️', '🌟', '✨'];
-
-        // Initialize game board
-        function initializeBoard() {
-            const gameBoard = document.getElementById('gameBoard');
-            gameBoard.innerHTML = '';
-
-            for (let i = 1; i <= boardSize; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'board-cell';
-                cell.id = `cell-${i}`;
-
-                // Create icon element
-                const icon = document.createElement('div');
-                icon.className = 'cell-icon';
-                icon.textContent = healthIcons[i % healthIcons.length];
-
-                // Create number element
-                const number = document.createElement('div');
-                number.textContent = i;
-
-                cell.appendChild(icon);
-                cell.appendChild(number);
-
-                if (questionCells.includes(i)) {
-                    cell.classList.add('special');
-                    cell.title = 'Casa de pergunta - Teste seus conhecimentos sobre HPV!';
-                    icon.textContent = '❓'; // Question icon for quiz cells
-                }
-
-                gameBoard.appendChild(cell);
-            }
-            
-            // Update player positions
-            updatePlayerPositions();
-        }
-
-        // Update player positions on board
-        function updatePlayerPositions() {
-            // Clear all player markers
-            document.querySelectorAll('.player-marker').forEach(marker => marker.remove());
-            document.querySelectorAll('.board-cell').forEach(cell => {
-                cell.classList.remove('player-position', 'has-players');
-            });
-
-            // Add player markers
-            Object.keys(gameState.players).forEach(playerId => {
-                const player = gameState.players[playerId];
-                const cell = document.getElementById(`cell-${player.position}`);
-                
-                if (cell) {
-                    cell.classList.add('player-position', 'has-players');
-                    
-                    const marker = document.createElement('div');
-                    marker.className = `player-marker player-${playerId}`;
-                    marker.textContent = playerId;
-                    cell.appendChild(marker);
-                }
-            });
-        }
-
-        // Roll dice function
-        async function rollDice() {
-            if (gameState.isRolling || gameState.gameCompleted) return;
-
-            // Esconder vídeo antes de iniciar o jogo (após o primeiro clique)
-            hideIntroVideo();
-
-            gameState.isRolling = true;
-            const dice = document.getElementById('dice');
-            const diceLabel = document.getElementById('diceLabel');
-
-            // Add rolling animation
-            dice.classList.add('rolling');
-            diceLabel.textContent = 'Girando...';
-
-            // Simulate roulette spin
-            const rollResult = Math.floor(Math.random() * 6) + 1;
-
-            setTimeout(async () => {
-                dice.classList.remove('rolling');
-                dice.textContent = rollResult;
-                diceLabel.textContent = `Você tirou ${rollResult}!`;
-
-                // Move player
-                await movePlayer(rollResult);
-                gameState.isRolling = false;
-
-                // Reset roulette after delay
-                setTimeout(() => {
-                    dice.textContent = '🎯';
-                    const currentLabel = window.elementSdk?.config?.dice_label || defaultConfig.dice_label;
-                    diceLabel.textContent = currentLabel;
-                }, 2000);
-            }, 2000);
-        }
-
-        // Move player function
-        async function movePlayer(steps) {
-            const currentPlayer = gameState.players[gameState.currentPlayer];
-            const oldPosition = currentPlayer.position;
-            currentPlayer.position = Math.min(currentPlayer.position + steps, boardSize);
-
-            // Update visual position
-            updatePlayerPositions();
-
-            // Update score
-            currentPlayer.score += steps * 10;
-
-            // Show movement message
-            showMessage(`${currentPlayer.name} avançou ${steps} casas! Posição: ${currentPlayer.position}`, 'info');
-
-            // Check for game completion first
-            if (currentPlayer.position >= boardSize) {
-                gameState.gameCompleted = true;
-                gameState.winner = gameState.currentPlayer;
-                setTimeout(() => showGameComplete(), 1000);
-                return;
-            }
-
-            // Check for question cell with delay to show movement first
-            setTimeout(() => {
-                if (questionCells.includes(currentPlayer.position)) {
-                    const questionIndex = Math.floor(Math.random() * hpvQuestions.length);
-                    showQuestion(hpvQuestions[questionIndex]);
-                    return; // Don't switch turns yet, wait for question answer
-                } else {
-                    // Switch to next player if no question
-                    switchPlayer();
-                    updatePlayerStats();
-                }
-            }, 1500);
-
-            // Update UI immediately
-            updatePlayerStats();
-
-            // Save game state
-            await saveGameState();
-        }
-
-        // --- Vídeo de Abertura Functions ---
-        function hideIntroVideo() {
-            const videoContainer = document.getElementById('introVideoContainer');
-            const video = document.getElementById('intro-video');
-            
-            if (videoContainer.style.display !== 'none') {
-                video.pause();
-                videoContainer.style.display = 'none';
-                // Adicionar margem superior ao dice-container para compensar o vídeo que saiu
-                document.querySelector('.dice-container').style.marginTop = '20px';
-                document.querySelector('.game-board').style.marginTop = '20px';
-            }
-        }
-
-        function showIntroVideo() {
-            const videoContainer = document.getElementById('introVideoContainer');
-            const video = document.getElementById('intro-video');
-            
-            videoContainer.style.display = 'block';
-            video.currentTime = 0;
-            video.play().catch(e => console.log('Autoplay blocked:', e));
-        }
-        // --- Fim Vídeo de Abertura Functions ---
-
-        // Switch to next player
-        function switchPlayer() {
-            gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
-            updateTurnIndicator();
-        }
-
-        // Update turn indicator
-        function updateTurnIndicator() {
-            const turnIndicator = document.getElementById('turnIndicator');
-            const currentPlayerName = gameState.players[gameState.currentPlayer].name;
-            turnIndicator.textContent = `Vez do ${currentPlayerName}`;
-            
-            // Update active player highlight
-            document.querySelectorAll('.player-info').forEach(info => info.classList.remove('active'));
-            document.getElementById(`player${gameState.currentPlayer}Info`).classList.add('active');
-        }
-
-        // Show question modal
-        function showQuestion(question) {
-            console.log('Showing question:', question); // Debug log
-            gameState.currentQuestion = question;
-            
-            // Show message that question is coming
-            showMessage(`❓ ${gameState.players[gameState.currentPlayer].name} caiu numa casa de pergunta!`, 'info');
-            
-            // Small delay to show the message first
-            setTimeout(() => {
-                document.getElementById('questionCase').textContent = question.case;
-                document.getElementById('questionText').textContent = question.question;
-                document.getElementById('questionHint').textContent = `💡 Dica: ${question.hint}`;
-                
-                const optionsContainer = document.getElementById('questionOptions');
-                optionsContainer.innerHTML = '';
-                
-                question.options.forEach((option, index) => {
-                    const button = document.createElement('button');
-                    button.className = 'option-btn';
-                    button.textContent = option;
-                    button.onclick = () => selectAnswer(index);
-                    optionsContainer.appendChild(button);
-                });
-                
-                // Reset explanation and close button
-                document.getElementById('questionExplanation').style.display = 'none';
-                document.getElementById('closeQuestion').style.display = 'none';
-                
-                // Show modal
-                document.getElementById('questionModal').style.display = 'flex';
-                console.log('Question modal displayed'); // Debug log
-            }, 1000);
-        }
-
-        // Select answer function
-        function selectAnswer(selectedIndex) {
-            const question = gameState.currentQuestion;
-            const options = document.querySelectorAll('.option-btn');
-            const isCorrect = selectedIndex === question.correct;
-            const currentPlayer = gameState.players[gameState.currentPlayer];
-            const questionContent = document.querySelector('.question-content');
-            
-            // Disable all options
-            options.forEach((btn, index) => {
-                btn.disabled = true;
-                if (index === question.correct) {
-                    btn.classList.add('correct');
-                } else if (index === selectedIndex && !isCorrect) {
-                    btn.classList.add('wrong');
-                }
-            });
-            
-            // Add shake effect to modal if wrong answer
-            if (!isCorrect) {
-                questionContent.classList.add('shake');
-                setTimeout(() => {
-                    questionContent.classList.remove('shake');
-                }, 600);
-            }
-            
-            // Show explanation
-            const explanationDiv = document.getElementById('questionExplanation');
-            explanationDiv.textContent = question.explanation;
-            explanationDiv.style.display = 'block';
-            
-            // Show close button
-            document.getElementById('closeQuestion').style.display = 'block';
-            
-            // Update game state and show effects
-            if (isCorrect) {
-                currentPlayer.correctAnswers++;
-                currentPlayer.coins += 10;
-                currentPlayer.stars += 5;
-                currentPlayer.score += 100;
-                showRewardAnimation();
-                showMessage(`🎉 ${currentPlayer.name} acertou! Ganhou 10 moedas! 🪙`, 'success');
-            } else {
-                currentPlayer.wrongAnswers++;
-                showExplosion();
-                showMessage(`💥 ${currentPlayer.name} errou! Levou uma bomba! 💣`, 'error');
-            }
-            
-            updatePlayerStats();
-        }
-
-        // Close question modal
-        function closeQuestionModal() {
-            document.getElementById('questionModal').style.display = 'none';
-            document.getElementById('questionExplanation').style.display = 'none';
-            document.getElementById('closeQuestion').style.display = 'none';
-            gameState.currentQuestion = null;
-            
-            // Switch to next player after question
-            if (!gameState.gameCompleted) {
-                switchPlayer();
-                updatePlayerStats();
-            }
-        }
-
-        // Show explosion animation
-        function showExplosion() {
-            const explosion = document.createElement('div');
-            explosion.className = 'explosion';
-            explosion.textContent = '💥';
-            document.body.appendChild(explosion);
-            
-            setTimeout(() => {
-                document.body.removeChild(explosion);
-            }, 1500);
-        }
-
-        // Show reward animation
-        function showRewardAnimation() {
-            // Show coins
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    const coin = document.createElement('div');
-                    coin.className = 'reward';
-                    coin.textContent = '🪙';
-                    coin.style.left = Math.random() * window.innerWidth + 'px';
-                    coin.style.top = Math.random() * window.innerHeight + 'px';
-                    document.body.appendChild(coin);
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(coin);
-                    }, 2000);
-                }, i * 200);
-            }
-            
-            // Show stars
-            for (let i = 0; i < 2; i++) {
-                setTimeout(() => {
-                    const star = document.createElement('div');
-                    star.className = 'reward';
-                    star.textContent = '⭐';
-                    star.style.left = Math.random() * window.innerWidth + 'px';
-                    star.style.top = Math.random() * window.innerHeight + 'px';
-                    document.body.appendChild(star);
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(star);
-                    }, 2000);
-                }, i * 300 + 600);
-            }
-        }
-
-        // Show game complete message
-        function showGameComplete() {
-            const winner = gameState.players[gameState.winner];
-            const loser = gameState.players[gameState.winner === 1 ? 2 : 1];
-            
-            showMessage(`🏆 ${winner.name} VENCEU! 
-            🪙 Moedas: ${winner.coins} vs ${loser.coins}
-            ✅ Acertos: ${winner.correctAnswers} vs ${loser.correctAnswers}
-            🎯 Posição final: ${winner.position}`, 'success');
-        }
-
-        // Show message function
-        function showMessage(text, type = 'info') {
-            const messageDiv = document.getElementById('gameMessage');
-            messageDiv.textContent = text;
-            messageDiv.style.display = 'block';
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Update player stats
-        function updatePlayerStats() {
-            // Update Player 1 stats
-            const player1 = gameState.players[1];
-            document.getElementById('player1Position').textContent = player1.position;
-            document.getElementById('player1Coins').textContent = player1.coins;
-            document.getElementById('player1Correct').textContent = player1.correctAnswers;
-            document.getElementById('player1Wrong').textContent = player1.wrongAnswers;
-            
-            // Update Player 2 stats
-            const player2 = gameState.players[2];
-            document.getElementById('player2Position').textContent = player2.position;
-            document.getElementById('player2Coins').textContent = player2.coins;
-            document.getElementById('player2Correct').textContent = player2.correctAnswers;
-            document.getElementById('player2Wrong').textContent = player2.wrongAnswers;
-            
-            // Update turn indicator
-            updateTurnIndicator();
-        }
-
-
-
-        // Save game state to Data SDK
-        async function saveGameState() {
-            if (!window.dataSdk) return;
-
-            const gameData = {
-                player_name: gameState.playerName,
-                current_position: gameState.currentPosition,
-                score: gameState.score,
-                game_completed: gameState.gameCompleted,
-                timestamp: new Date().toISOString()
-            };
-
-            const result = await window.dataSdk.create(gameData);
-            if (!result.isOk) {
-                console.error('Failed to save game state:', result.error);
-            }
-        }
-
-        // Initialize game
-        async function initializeGame() {
-            // Initialize Data SDK
-            if (window.dataSdk) {
-                const initResult = await window.dataSdk.init(dataHandler);
-                if (!initResult.isOk) {
-                    console.error('Failed to initialize Data SDK:', initResult.error);
-                }
-            }
-
-            // Initialize Element SDK
-            if (window.elementSdk) {
-                window.elementSdk.init({
-                    defaultConfig,
-                    onConfigChange,
-                    mapToCapabilities,
-                    mapToEditPanelValues
-                });
-            }
-
-            // Initialize game board
-            initializeBoard();
-            updatePlayerStats();
-            updateTurnIndicator();
-            showMessage('🎮 Jogo da Vida HPV para 2 jogadores! 🔵 Jogador 1 começa! Gire a roleta para jogar!', 'info');
-            showIntroVideo(); // Mostra o vídeo na inicialização
-        }
-
-        // Start game when page loads
-        document.addEventListener('DOMContentLoaded', initializeGame);
-    </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99576bbe54c6e1ab',t:'MTc2MTYyMjkyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ff6b6b">
+    <title>Jogo da Vida HPV</title>
+    <script src="/_sdk/data_sdk.js"></script>
+    <script src="/_sdk/element_sdk.js"></script>
+    <style>
+        /* BASE AND LAYOUT STYLES */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%; /* Força 100% de altura para o background gradient */
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* TYPOGRAPHY */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        /* VIDEO STYLES */
+        .intro-video-container {
+            max-width: 100%;
+            margin: 15px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: block; /* Visível por padrão na abertura */
+        }
+
+        #intro-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* PLAYER INFO */
+        .players-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .player-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .player-info.active {
+            border: 3px solid #feca57;
+            box-shadow: 0 0 20px rgba(254, 202, 87, 0.5);
+            transform: scale(1.02);
+        }
+        
+        .current-turn {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .turn-indicator {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #feca57, #ff9ff3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+        }
+
+        .player-name {
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .player-stats {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* DICE/RULETA */
+        .dice-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dice {
+            width: 120px;
+            height: 120px;
+            background: conic-gradient(
+                #ff6b6b 0deg 60deg,
+                #4ecdc4 60deg 120deg,
+                #45b7d1 120deg 180deg,
+                #96ceb4 180deg 240deg,
+                #feca57 240deg 300deg,
+                #ff9ff3 300deg 360deg
+            );
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            border: 4px solid white;
+        }
+        
+        .dice.rolling {
+            animation: rouletteRoll 2s ease-out;
+        }
+        
+        @keyframes rouletteRoll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(1800deg); }
+        }
+
+        .dice:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* BOARD */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .board-cell {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: #495057;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .board-cell.special {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border-color: #ff4757;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .player-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+            transition: all 0.5s ease;
+        }
+
+        .player-marker.player-1 { background: #4ecdc4; top: -5px; left: -5px; }
+        .player-marker.player-2 { background: #ff6b6b; top: -5px; right: -5px; }
+        
+        /* MESSAGES AND MODALS (Simplified for brevity, maintaining structure) */
+        .game-message {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+            color: #2d3436;
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+            transform: translateY(10px);
+            opacity: 0;
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .question-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none; /* Escondido por padrão */
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .question-content {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 90%;
+            width: 100%;
+            max-height: 95%;
+            overflow-y: auto;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            border: 3px solid #4ecdc4;
+            transform: scale(0.9);
+            animation: modalAppear 0.5s ease forwards;
+        }
+
+        @keyframes modalAppear {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .question-case {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: #1565c0;
+            font-size: 0.9rem;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+            padding: 12px;
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+        }
+        
+        .option-btn {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        .option-btn.correct {
+            border-color: #4caf50;
+            background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+            color: #2e7d32;
+        }
+
+        .option-btn.wrong {
+            border-color: #f44336;
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828;
+        }
+        
+        .close-question {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        /* RESPONSIVE AND MEDIA QUERIES */
+        @media (min-width: 768px) {
+            .game-title { font-size: 3rem; }
+            .subtitle { font-size: 1.3rem; }
+            .dice-container { flex-direction: row; justify-content: space-around; padding: 30px; }
+            .game-board { grid-template-columns: repeat(10, 1fr); max-height: 400px; }
+        }
+
+        @media (max-width: 480px) {
+            .dice { width: 70px; height: 70px; font-size: 1.8rem; }
+            .board-cell { font-size: 0.5rem; }
+        }
+    </style>
+    <style>@view-transition { navigation: auto; }</style>
+    <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+</head>
+<body>
+    <div class="bubbles">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+    
+    <div class="container">
+        <div class="game-card">
+            <div class="header">
+                <h1 class="game-title" id="gameTitle">Jogo da Vida HPV</h1>
+                <p class="subtitle" id="subtitleText">Aprenda sobre prevenção do HPV de forma divertida!</p>
+            </div>
+
+            <div id="introVideoContainer" class="intro-video-container">
+                <video id="intro-video" controls preload="auto" poster="placeholder.jpg">
+                    <source src="1760818263849.mp4" type="video/mp4">
+                    Seu navegador não suporta vídeo HTML5.
+                </video>
+            </div>
+            <div class="game-controls">
+                <div class="players-info">
+                    <div class="player-info player-1" id="player1Info">
+                        <div class="player-name">🔵 Jogador 1</div>
+                        <div class="player-stats">
+                            <div class="stat-item">📍 Posição: <span id="player1Position">1</span></div>
+                            <div class="stat-item">🪙 Moedas: <span id="player1Coins">0</span></div>
+                            <div class="stat-item">✅ Acertos: <span id="player1Correct">0</span></div>
+                            <div class="stat-item">❌ Erros: <span id="player1Wrong">0</span></div>
+                        </div>
+                    </div>
+                    <div class="current-turn">
+                        <div class="turn-indicator" id="turnIndicator">Vez do Jogador 1</div>
+                    </div>
+                    <div class="player-info player-2" id="player2Info">
+                        <div class="player-name">🔴 Jogador 2</div>
+                        <div class="player-stats">
+                            <div class="stat-item">📍 Posição: <span id="player2Position">1</span></div>
+                            <div class="stat-item">🪙 Moedas: <span id="player2Coins">0</span></div>
+                            <div class="stat-item">✅ Acertos: <span id="player2Correct">0</span></div>
+                            <div class="stat-item">❌ Erros: <span id="player2Wrong">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dice-container" style="margin-top: 15px;"> <div class="dice" id="dice" onclick="rollDice()">🎯</div>
+                <div class="dice-label" id="diceLabel">Clique para girar a roleta</div>
+            </div>
+
+            <div class="game-board" id="gameBoard"></div>
+            <div id="gameMessage" class="game-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div id="questionModal" class="question-modal" style="display: none;">
+        <div class="question-content">
+            <div id="questionCase" class="question-case"></div>
+            <div id="questionText" class="question-text"></div>
+            <div id="questionHint" class="question-hint"></div>
+            <div id="questionOptions" class="question-options"></div>
+            <div id="questionExplanation" class="question-explanation" style="display: none;"></div>
+            <button id="closeQuestion" class="close-question" onclick="closeQuestionModal()" style="display: none;">Continuar Jogo</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game configuration ---
+        const defaultConfig = {
+            game_title: "Jogo da Vida HPV",
+            subtitle_text: "Aprenda sobre prevenção do HPV de forma divertida!",
+            dice_label: "Clique para girar a roleta",
+            primary_color: "#4ecdc4",
+            secondary_color: "#ff6b6b"
+        };
+
+        // --- Game state ---
+        let gameState = {
+            currentPlayer: 1,
+            players: {
+                1: {
+                    name: "Jogador 1", position: 1, score: 0, coins: 0, stars: 0, correctAnswers: 0, wrongAnswers: 0, color: "#4ecdc4"
+                },
+                2: {
+                    name: "Jogador 2", position: 1, score: 0, coins: 0, stars: 0, correctAnswers: 0, wrongAnswers: 0, color: "#ff6b6b"
+                }
+            },
+            isRolling: false,
+            gameCompleted: false,
+            currentQuestion: null,
+            winner: null
+        };
+
+        // --- Game data (Questions) ---
+        const boardSize = 20;
+        const questionCells = Array.from({length: boardSize}, (_, i) => i + 1);
+        const hpvQuestions = [
+            // PERGUNTAS INICIAIS (q1-q15)
+            { id: "q1", case: "Caso de Sofia (16 anos): Sofia notou o surgimento de pequenas 'bolinhas' ou 'verruguinhas' na região genital e está com medo.", question: "Se essas lesões forem realmente verrugas de HPV (Condiloma Acuminado), qual a medida mais importante que Sofia deve tomar imediatamente?", hint: "O diagnóstico correto deve sempre ser feito por um profissional de saúde.", options: [ "A. Comprar uma pomada sem receita na farmácia para fazer o tratamento em casa.", "B. Ignorar, pois verrugas somem sozinhas em adolescentes.", "C. Buscar imediatamente um médico (ginecologista ou urologista) para o diagnóstico correto e iniciar o tratamento das lesões.", "D. Fazer um teste de gravidez, pois verrugas são sinal de alteração hormonal." ], correct: 2, explanation: "É fundamental procurar um profissional de saúde (Ginecologista, Urologista, Proctologista ou Dermatologista) para confirmar o diagnóstico de HPV e iniciar o tratamento adequado das lesões, evitando a progressão e a transmissão." },
+            { id: "q2", case: "Pergunta para o jogador:", question: "Qual das afirmações abaixo melhor descreve a relação entre a infecção por HPV e outras IST?", hint: "O comportamento de risco que leva ao HPV expõe a outros agentes.", options: [ "A. Ter HPV torna a pessoa imune a outras IST, como o HIV.", "B. Não há nenhuma relação; são doenças completamente separadas.", "C. A presença de HPV indica que o indivíduo está exposto a comportamentos de risco, o que aumenta a probabilidade de contrair outra IST simultaneamente (coinfecção).", "D. O tratamento do HPV trata automaticamente todas as outras IST." ], correct: 2, explanation: "O HPV, como as outras IST, é transmitido principalmente por contato íntimo desprotegido. Se uma pessoa se infecta com HPV, é um sinal de que ela pode estar vulnerável ou já infectada por outra IST, como HIV, Sífilis ou Hepatites." },
+            { id: "q3", case: "Caso de Clara (25 anos): Clara está iniciando o rastreio e pergunta ao médico com que frequência ela precisa fazer o Papanicolau (preventivo) para monitorar o colo do útero.", question: "Qual é o intervalo padrão recomendado no Brasil para a realização do exame Papanicolau, após dois exames anuais consecutivos negativos?", hint: "Papanicolau detecta lesões precocemente, mas não precisa ser anual na maioria dos casos.", options: [ "A. A cada 6 meses (semestralmente).", "B. A cada 3 anos (trienalmente).", "C. A cada 10 anos.", "D. Apenas quando tiver relações sexuais com um novo parceiro." ], correct: 1, explanation: "Após dois resultados anuais normais consecutivos, o Papanicolau deve ser repetido a cada três anos. Essa periodicidade é suficiente para detectar lesões precursoras do câncer do colo do útero a tempo de tratamento." },
+            { id: "q4", case: "Pergunta para o jogador:", question: "Por que a vacinação contra o HPV em meninos é considerada tão importante quanto em meninas para a saúde pública?", hint: "Pense no papel dos homens na cadeia de transmissão e no risco de câncer masculino.", options: [ "A. Meninos só tomam a vacina para prevenir o câncer de próstata.", "B. Para proteger os meninos contra o câncer de pênis, ânus e orofaringe, e para reduzir a circulação do vírus na população, protegendo indiretamente as meninas.", "C. A vacina em meninos só serve para prevenir verrugas genitais, o risco de câncer é muito baixo.", "D. Os meninos só precisam tomar a vacina se a parceira já estiver infectada." ], correct: 1, explanation: "A vacinação masculina protege diretamente contra cânceres (pênis, ânus, orofaringe) e, ao reduzir o número de portadores, diminui a transmissão viral, criando uma 'imunidade de rebanho' que beneficia as mulheres." },
+            { id: "q5", case: "Caso de Daniel (28 anos): Daniel está preocupado com o HPV e não tem verrugas. Ele quer saber qual é o exame de rotina mais eficaz para diagnosticar o HPV em homens assintomáticos.", question: "Qual é a recomendação atual da maioria dos órgãos de saúde para o rastreamento de HPV em homens que não apresentam lesões visíveis?", hint: "O foco não é o exame, mas o acompanhamento e a vacina.", options: [ "A. Fazer o exame de Papanicolau (preventivo) adaptado para homens.", "B. Não há exame de rotina universalmente recomendado para homens assintomáticos; o foco é a vacinação e a observação de lesões (verrugas).", "C. Fazer um exame de sangue a cada 6 meses.", "D. Fazer uma biópsia preventiva do pênis anualmente." ], correct: 1, explanation: "Atualmente, não há um exame de rastreamento de HPV em homens tão eficaz e padronizado quanto o Papanicolau para mulheres. O foco médico principal é na vacinação em idade jovem e no exame clínico minucioso em caso de aparecimento de lesões." },
+            { id: "q6", case: "Pergunta para o jogador:", question: "O que significa o termo 'lesões precursoras de câncer' (NIC 1, NIC 2, NIC 3) e por que elas são o alvo principal do Papanicolau?", hint: "Essas lesões são um estágio intermediário entre a infecção e o câncer.", options: [ "A. São as verrugas genitais em estágio inicial.", "B. São alterações nas células causadas pelo HPV que, se não tratadas, podem evoluir para câncer (não são câncer ainda), e são detectáveis no Papanicolau.", "C. São tumores malignos que já se espalharam.", "D. São inflamações simples que desaparecem com água e sabão." ], correct: 1, explanation: "Lesões precursoras são mudanças nas células do colo do útero causadas pelo HPV. Elas são a chance de tratar a condição antes que ela se torne um câncer, e é por isso que o Papanicolau, que as detecta, é tão vital." },
+            { id: "q7", case: "Caso de Carol (21 anos): Carol descobriu que está com HPV. Ela pergunta: 'Mesmo já tendo o vírus, a vacina ainda pode me ajudar?'", question: "Se uma pessoa já está infectada com um tipo de HPV, a vacina ainda pode ser benéfica?", hint: "Pense na proteção contra os outros tipos que a vacina oferece.", options: [ "A. Não, a vacina só tem efeito se for tomada antes do primeiro contato sexual.", "B. Sim, porque a vacina protege contra os outros tipos de HPV de alto risco que a pessoa ainda não adquiriu.", "C. Sim, porque a vacina atua como um remédio para curar a infecção atual.", "D. Apenas se a pessoa tiver mais de 30 anos." ], correct: 1, explanation: "A vacina é preventiva. Mesmo que o indivíduo já tenha um tipo de HPV, a vacina previne a infecção por outros tipos virais presentes na formulação, protegendo contra múltiplas infecções futuras." },
+            { id: "q8", case: "Caso de Ana (19 anos): Ana quer saber qual é a idade ideal para tomar a vacina contra HPV.", question: "Qual é a faixa etária recomendada pelo Ministério da Saúde para vacinação gratuita contra HPV no SUS?", hint: "A vacina é mais eficaz quando aplicada antes do início da vida sexual.", options: [ "A. Apenas para meninas de 9 a 14 anos.", "B. Para meninas de 9 a 14 anos e meninos de 11 a 14 anos.", "C. Apenas para pessoas acima de 18 anos.", "D. Para todas as idades, sem restrição." ], correct: 1, explanation: "O SUS oferece a vacina gratuitamente para meninas de 9 a 14 anos e meninos de 11 a 14 anos, pois a eficácia é maior quando aplicada antes do início da atividade sexual." },
+            { id: "q9", case: "Pergunta para o jogador:", question: "Quantas doses da vacina contra HPV são necessárias para uma proteção adequada?", hint: "O esquema vacinal mudou nos últimos anos para facilitar a adesão.", options: [ "A. Uma dose única é suficiente.", "B. Duas doses com intervalo de 6 meses.", "C. Três doses obrigatoriamente.", "D. Quatro doses anuais." ], correct: 1, explanation: "Atualmente, o esquema recomendado é de duas doses da vacina contra HPV, com intervalo de 6 meses entre elas, para pessoas de 9 a 14 anos. Para pessoas acima de 15 anos, são recomendadas três doses." },
+            { id: "q10", case: "Caso de Marcos (22 anos): Marcos descobriu que tem HPV e quer saber se pode transmitir o vírus mesmo sem ter sintomas.", question: "É possível transmitir HPV mesmo sem apresentar verrugas ou outros sintomas visíveis?", hint: "A maioria das infecções por HPV são assintomáticas.", options: [ "A. Não, só transmite quando há verrugas visíveis.", "B. Sim, a transmissão pode ocorrer mesmo sem sintomas visíveis.", "C. Só transmite durante crises de dor.", "D. Apenas mulheres transmitem sem sintomas." ], correct: 1, explanation: "Sim, o HPV pode ser transmitido mesmo quando a pessoa não apresenta sintomas visíveis. A maioria das infecções por HPV são assintomáticas, mas ainda assim podem ser transmitidas através do contato íntimo." },
+            { id: "q11", case: "Pergunta para o jogador:", question: "Qual é a principal forma de transmissão do HPV?", hint: "O HPV é uma infecção sexualmente transmissível.", options: [ "A. Através do ar, como gripe.", "B. Contato sexual (vaginal, anal ou oral).", "C. Compartilhamento de utensílios de cozinha.", "D. Picada de mosquito." ], correct: 1, explanation: "O HPV é transmitido principalmente através do contato sexual (vaginal, anal ou oral). O vírus infecta a pele e mucosas, sendo uma das infecções sexualmente transmissíveis mais comuns." },
+            { id: "q12", case: "Caso de Júlia (26 anos): Júlia está grávida e descobriu que tem HPV. Ela está preocupada com o bebê.", question: "Uma mulher grávida com HPV pode transmitir o vírus para o bebê durante o parto?", hint: "A transmissão vertical é possível, mas rara.", options: [ "A. Não, é impossível transmitir HPV para o bebê.", "B. Sim, mas é muito raro. O bebê pode desenvolver papilomatose respiratória.", "C. Sempre transmite, causando malformações.", "D. Só transmite se for cesariana." ], correct: 1, explanation: "A transmissão do HPV da mãe para o bebê durante o parto é possível, mas muito rara. Quando ocorre, pode causar papilomatose respiratória recorrente no bebê, uma condição tratável." },
+            { id: "q13", case: "Pergunta para o jogador:", question: "Qual exame é considerado o mais importante para detectar alterações causadas pelo HPV no colo do útero?", hint: "É um exame de rotina que toda mulher deve fazer regularmente.", options: [ "A. Ultrassom pélvico.", "B. Exame de sangue.", "C. Papanicolau (exame citopatológico).", "D. Raio-X do abdômen." ], correct: 2, explanation: "O Papanicolau (exame citopatológico) é o principal exame para detectar alterações nas células do colo do útero causadas pelo HPV, permitindo o diagnóstico precoce de lesões precursoras do câncer." },
+            { id: "q14", case: "Caso de Pedro (30 anos): Pedro quer saber se homens também podem desenvolver câncer por causa do HPV.", question: "Quais tipos de câncer o HPV pode causar em homens?", hint: "O HPV não afeta apenas as mulheres.", options: [ "A. Apenas câncer de próstata.", "B. Câncer de pênis, ânus e orofaringe (garganta).", "C. Apenas câncer de pele.", "D. HPV não causa câncer em homens." ], correct: 1, explanation: "O HPV pode causar câncer de pênis, ânus e orofaringe (garganta) em homens. Por isso a vacinação masculina também é importante para a prevenção desses cânceres." },
+            { id: "q15", case: "Pergunta para o jogador:", question: "O uso de preservativo (camisinha) previne 100% a transmissão do HPV?", hint: "O HPV infecta áreas que podem não ser cobertas pelo preservativo.", options: [ "A. Sim, previne 100% se usado corretamente.", "B. Não previne nada, é inútil contra HPV.", "C. Reduz significativamente o risco, mas não previne 100%.", "D. Só previne em mulheres." ], correct: 2, explanation: "O preservativo reduz significativamente o risco de transmissão do HPV, mas não previne 100%, pois o vírus pode infectar áreas da pele não cobertas pela camisinha. Ainda assim, seu uso é fundamental." },
+            
+            // NOVAS 15 PERGUNTAS COM IST ATUALIZADA (q16_new - q30_new)
+            { id: "q16_new", case: "Pergunta para o jogador:", question: "O vírus HPV é dividido em dois grupos: Baixo Risco e Alto Risco. Qual é a principal diferença entre eles?", hint: "Pense na consequência mais grave que o vírus pode causar.", options: [ "A. Baixo Risco causa apenas verrugas; Alto Risco está associado a lesões que podem evoluir para câncer.", "B. Baixo Risco afeta apenas a pele; Alto Risco afeta apenas as mucosas.", "C. Baixo Risco é transmitido pela água; Alto Risco é transmitido por contato íntimo.", "D. Apenas o Baixo Risco pode ser curado pelo sistema imunológico." ], correct: 0, explanation: "O HPV de Baixo Risco (tipos 6 e 11) causa verrugas genitais (condilomas). O HPV de Alto Risco (tipos 16, 18 e outros) causa lesões silenciosas que, se não tratadas, podem se transformar em câncer." },
+            { id: "q17_new", case: "Caso de Sofia (16 anos): Sofia notou o surgimento de pequenas 'bolinhas' ou 'verruguinhas' na região genital e está com medo.", question: "Se essas lesões forem realmente verrugas de HPV (Condiloma Acuminado), qual a medida mais importante que Sofia deve tomar imediatamente?", hint: "O diagnóstico correto deve sempre ser feito por um profissional de saúde.", options: [ "A. Comprar uma pomada sem receita na farmácia para fazer o tratamento em casa.", "B. Ignorar, pois verrugas somem sozinhas em adolescentes.", "C. Buscar imediatamente um médico (ginecologista ou urologista) para o diagnóstico correto e iniciar o tratamento das lesões.", "D. Fazer um teste de gravidez, pois verrugas são sinal de alteração hormonal." ], correct: 2, explanation: "É fundamental procurar um profissional de saúde (Ginecologista, Urologista, Proctologista ou Dermatologista) para confirmar o diagnóstico de HPV e iniciar o tratamento adequado das lesões, evitando a progressão e a transmissão." },
+            { id: "q18_new", case: "Caso de Clara (25 anos): Clara está iniciando o rastreio e pergunta ao médico com que frequência ela precisa fazer o Papanicolau (preventivo) para monitorar o colo do útero.", question: "Qual é o intervalo padrão recomendado no Brasil para a realização do exame Papanicolau, após dois exames anuais consecutivos negativos?", hint: "Papanicolau detecta lesões precocemente, mas não precisa ser anual na maioria dos casos.", options: [ "A. A cada 6 meses (semestralmente).", "B. A cada 3 anos (trienalmente).", "C. A cada 10 anos.", "D. Apenas quando tiver relações sexuais com um novo parceiro." ], correct: 1, explanation: "Após dois resultados anuais normais consecutivos, o Papanicolau deve ser repetido a cada três anos. Essa periodicidade é suficiente para detectar lesões precursoras do câncer do colo do útero a tempo de tratamento." },
+            { id: "q19_new", case: "Pergunta para o jogador:", question: "Por que a vacinação contra o HPV em meninos é considerada tão importante quanto em meninas para a saúde pública?", hint: "Pense no papel dos homens na cadeia de transmissão e no risco de câncer masculino.", options: [ "A. Meninos só tomam a vacina para prevenir o câncer de próstata.", "B. Para proteger os meninos contra o câncer de pênis, ânus e orofaringe, e para reduzir a circulação do vírus na população, protegendo indiretamente as meninas.", "C. A vacina em meninos só serve para prevenir verrugas genitais, o risco de câncer é muito baixo.", "D. Os meninos só precisam tomar a vacina se a parceira já estiver infectada." ], correct: 1, explanation: "A vacinação masculina protege diretamente contra cânceres (pênis, ânus, orofaringe) e, ao reduzir o número de portadores, diminui a transmissão viral, criando uma 'imunidade de rebanho' que beneficia as mulheres." },
+            { id: "q20_new", case: "Caso de Lucas (20 anos): Lucas já teve uma infecção por HPV que seu corpo eliminou. Ele pergunta ao médico se ele pode ter o vírus novamente.", question: "Uma pessoa que já teve uma infecção por HPV pode ser reinfectada (ou infectada por um tipo diferente de HPV) no futuro?", hint: "Existem mais de 150 tipos de HPV.", options: [ "A. Não, uma vez que a infecção é eliminada, o corpo fica imune para sempre contra o vírus.", "B. Sim, pois a proteção é específica para o tipo que causou a infecção anterior, e existem muitos outros tipos de HPV circulando.", "C. Sim, mas apenas se a pessoa tiver uma doença autoimune muito grave.", "D. Não, a vacina impede qualquer reinfecção de acontecer." ], correct: 1, explanation: "O sistema imunológico cria proteção principalmente para o tipo específico de HPV que causou a infecção. Como existem muitos tipos de HPV, a pessoa pode ser facilmente infectada por um tipo diferente no futuro." },
+            { id: "q21_new", case: "Caso de Bia (24 anos): Bia nunca tomou a vacina do HPV na adolescência. Ela pergunta se ainda vale a pena se vacinar na idade adulta.", question: "Se uma pessoa adulta (fora da faixa etária prioritária, mas dentro da faixa estendida) nunca foi vacinada, a vacina do HPV ainda é recomendada?", hint: "O benefício é a prevenção dos tipos que a pessoa *ainda não* pegou.", options: [ "A. Não, pois a vacina é ineficaz após os 18 anos.", "B. Não, pois se ela já teve contato, a vacina não tem utilidade.", "C. Sim, a vacina ainda é recomendada, pois protege contra os tipos de HPV que a pessoa ainda não adquiriu, mesmo que ela já tenha tido contato com outro tipo.", "D. Sim, mas ela precisa fazer uma cirurgia para remover o vírus antes de se vacinar." ], correct: 2, explanation: "Mesmo que um adulto já tenha tido contato com um ou dois tipos de HPV, a vacina continua protegendo contra os outros tipos perigosos contidos nela que a pessoa ainda não foi exposta. O benefício preventivo ainda é alto." },
+            { id: "q22_new", case: "Caso de Renata (28 anos): Renata está grávida e descobriu que tem verrugas genitais causadas pelo HPV.", question: "Qual é a principal preocupação médica em relação às verrugas de HPV durante a gravidez?", hint: "Pense no risco de transmissão para o bebê.", options: [ "A. A principal preocupação é que o HPV cause aborto espontâneo.", "B. O risco de que as verrugas cresçam muito e dificultem o parto normal, além da possibilidade de transmissão do vírus ao bebê durante a passagem pelo canal de parto.", "C. Não há preocupação, pois o HPV não atravessa a placenta.", "D. O HPV obriga a mãe a fazer uma cesárea, mesmo que não haja outras complicações." ], correct: 1, explanation: "As verrugas podem crescer rapidamente devido às mudanças hormonais na gravidez, o que pode atrapalhar o parto vaginal. Há também o risco de transmissão vertical, que pode causar papilomatose respiratória no recém-nascido." },
+            { id: "q23_new", case: "Pergunta para o jogador:", question: "Qual das afirmações abaixo melhor descreve a relação entre a infecção por HPV e outras IST?", hint: "O comportamento de risco que leva ao HPV expõe a outros agentes.", options: [ "A. Ter HPV torna a pessoa imune a outras IST, como o HIV.", "B. Não há nenhuma relação; são doenças completamente separadas.", "C. A presença de HPV indica que o indivíduo está exposto a comportamentos de risco, o que aumenta a probabilidade de contrair outra IST simultaneamente (coinfecção).", "D. O tratamento do HPV trata automaticamente todas as outras IST." ], correct: 2, explanation: "O HPV, como as outras IST, é transmitido principalmente por contato íntimo desprotegido. Se uma pessoa se infecta com HPV, é um sinal de que ela pode estar vulnerável ou já infectada por outra IST, como HIV, Sífilis ou Hepatites." },
+            { id: "q24_new", case: "Caso de Daniel (28 anos): Daniel está preocupado com o HPV e não tem verrugas. Ele quer saber qual é o exame de rotina mais eficaz para diagnosticar o HPV em homens assintomáticos.", question: "Qual é a recomendação atual da maioria dos órgãos de saúde para o rastreamento de HPV em homens que não apresentam lesões visíveis?", hint: "O foco não é o exame, mas o acompanhamento e a vacina.", options: [ "A. Fazer o exame de Papanicolau (preventivo) adaptado para homens.", "B. Não há exame de rotina universalmente recomendado para homens assintomáticos; o foco é a vacinação e a observação de lesões (verrugas).", "C. Fazer um exame de sangue a cada 6 meses.", "D. Fazer uma biópsia preventiva do pênis anualmente." ], correct: 1, explanation: "Atualmente, não há um exame de rastreamento de HPV em homens tão eficaz e padronizado quanto o Papanicolau para mulheres. O foco médico principal é na vacinação em idade jovem e no exame clínico minucioso em caso de aparecimento de lesões." },
+            { id: "q25_new", case: "Pergunta para o jogador:", question: "O que significa o termo 'lesões precursoras de câncer' (NIC 1, NIC 2, NIC 3) e por que elas são o alvo principal do Papanicolau?", hint: "Essas lesões são um estágio intermediário entre a infecção e o câncer.", options: [ "A. São as verrugas genitais em estágio inicial.", "B. São alterações nas células causadas pelo HPV que, se não tratadas, *podem* evoluir para câncer (não são câncer ainda), e são detectáveis no Papanicolau.", "C. São tumores malignos que já se espalharam.", "D. São inflamações simples que desaparecem com água e sabão." ], correct: 1, explanation: "Lesões precursoras são mudanças nas células do colo do útero causadas pelo HPV. Elas são a chance de tratar a condição antes que ela se torne um câncer, e é por isso que o Papanicolau, que as detecta, é tão vital." },
+            { id: "q26_new", case: "Caso de Carol (21 anos): Carol descobriu que está com HPV. Ela pergunta: 'Mesmo já tendo o vírus, a vacina ainda pode me ajudar?'", question: "Se uma pessoa já está infectada com um tipo de HPV, a vacina ainda pode ser benéfica?", hint: "Pense na proteção contra os outros tipos que a vacina oferece.", options: [ "A. Não, a vacina só tem efeito se for tomada antes do primeiro contato sexual.", "B. Sim, porque a vacina protege contra os outros tipos de HPV de alto risco que a pessoa ainda não adquiriu.", "C. Sim, porque a vacina atua como um remédio para curar a infecção atual.", "D. Apenas se a pessoa tiver mais de 30 anos." ], correct: 1, explanation: "A vacina é preventiva. Mesmo que o indivíduo já tenha um tipo de HPV, a vacina previne a infecção por outros tipos virais presentes na formulação, protegendo contra múltiplas infecções futuras." },
+            { id: "q27_new", case: "Caso de Rafa (18 anos): Rafa está passando por um período de muito estresse e dormindo pouco. Ele pergunta se isso pode afetar a infecção por HPV.", question: "Qual é a relação do estresse, falta de sono ou má alimentação com o HPV?", hint: "O estresse afeta diretamente sua 'equipe de defesa'.", options: [ "A. Estresse e sono não têm relação com a atividade do vírus.", "B. O estresse e a má alimentação podem enfraquecer o sistema imunológico, dificultando a eliminação natural do vírus e favorecendo o aparecimento de lesões.", "C. O estresse faz o vírus ser transmitido mais rapidamente.", "D. Apenas o uso de álcool e fumo tem impacto, não o estresse." ], correct: 1, explanation: "O sistema imunológico é essencial para combater e eliminar o HPV. Fatores como estresse crônico, falta de sono e má nutrição diminuem a eficácia imunológica, permitindo que o vírus permaneça ativo ou se manifeste em lesões." },
+            { id: "q28_new", case: "Pergunta para o jogador:", question: "Qual é o câncer mais frequentemente causado pelo HPV em mulheres e que é o principal alvo do exame Papanicolau e da vacinação?", hint: "O nome do exame já dá uma dica do local.", options: [ "A. Câncer de mama.", "B. Câncer de ovário.", "C. Câncer do colo do útero (ou cervical).", "D. Câncer de pele na região genital." ], correct: 2, explanation: "O Câncer do Colo do Útero (Câncer Cervical) é o mais comum associado ao HPV em mulheres e é o foco principal da prevenção secundária (Papanicolau) e primária (Vacina)." },
+            { id: "q29_new", case: "Caso de Gabi (23 anos): Gabi fez um tratamento para lesões de HPV e agora o Papanicolau deu normal. Ela pergunta se pode ter certeza de que o vírus foi totalmente eliminado.", question: "Se o Papanicolau de Gabi deu normal após o tratamento, o que isso realmente significa em relação à presença do HPV?", hint: "O exame detecta lesões ativas, não o vírus inativo.", options: [ "A. O Papanicolau normal significa que o vírus foi completamente eliminado do corpo e não há mais risco de transmissão.", "B. Significa que não há lesões ativas (células anormais) naquele momento, mas o vírus pode ainda estar em estado latente (dormente) no organismo.", "C. Significa que ela agora está imune e não precisa mais de exames.", "D. Significa que ela deve parar de usar camisinha." ], correct: 1, explanation: "O Papanicolau detecta alterações celulares (lesões ativas). Um resultado normal indica que o tratamento foi eficaz ou que o vírus está sob controle. O HPV pode permanecer latente (dormente) no organismo por anos e o acompanhamento regular é indispensável." },
+            { id: "q30_new", case: "Pergunta para o jogador:", question: "Qual dos fatores abaixo é considerado um dos **cofatores** mais significantes (além do HPV) para o desenvolvimento de câncer do colo do útero?", hint: "É um hábito que enfraquece a imunidade local.", options: [ "A. Consumo excessivo de café.", "B. Uso de roupas apertadas e sintéticas.", "C. O hábito de fumar (tabagismo).", "D. Beber água gelada frequentemente." ], correct: 2, explanation: "O tabagismo é um co-fator de risco muito importante. As substâncias tóxicas do cigarro enfraquecem a imunidade local no colo do útero, dificultando a eliminação do HPV pelo organismo e favorecendo a progressão das lesões para câncer." }
+        ];
+
+        // --- Data SDK handler (MANTIDO) ---
+        const dataHandler = {
+            onDataChanged(data) {
+                console.log('Game data updated:', data);
+            }
+        };
+
+        // --- Element SDK configuration (MANTIDO) ---
+        async function onConfigChange(config) {
+            const gameTitle = document.getElementById('gameTitle');
+            const subtitleText = document.getElementById('subtitleText');
+            const diceLabel = document.getElementById('diceLabel');
+
+            if (gameTitle) { gameTitle.textContent = config.game_title || defaultConfig.game_title; }
+            if (subtitleText) { subtitleText.textContent = config.subtitle_text || defaultConfig.subtitle_text; }
+            if (diceLabel) { diceLabel.textContent = config.dice_label || defaultConfig.dice_label; }
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [
+                    { get: () => config.primary_color || defaultConfig.primary_color, set: (value) => { if (window.elementSdk) { window.elementSdk.setConfig({ primary_color: value }); } } },
+                    { get: () => config.secondary_color || defaultConfig.secondary_color, set: (value) => { if (window.elementSdk) { window.elementSdk.setConfig({ secondary_color: value }); } } }
+                ],
+                borderables: [], fontEditable: undefined, fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["game_title", config.game_title || defaultConfig.game_title],
+                ["subtitle_text", config.subtitle_text || defaultConfig.subtitle_text],
+                ["dice_label", config.dice_label || defaultConfig.dice_label]
+            ]);
+        }
+
+        // --- Game Logic ---
+        const healthIcons = ['🏥', '💊', '🩺', '💉', '🧬', '🔬', '❤️', '🛡️', '🌟', '✨'];
+
+        function initializeBoard() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+
+            for (let i = 1; i <= boardSize; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'board-cell';
+                cell.id = `cell-${i}`;
+                
+                const icon = document.createElement('div');
+                icon.className = 'cell-icon';
+                icon.textContent = healthIcons[i % healthIcons.length];
+
+                const number = document.createElement('div');
+                number.textContent = i;
+
+                cell.appendChild(icon);
+                cell.appendChild(number);
+
+                if (questionCells.includes(i)) {
+                    cell.classList.add('special');
+                    cell.title = 'Casa de pergunta - Teste seus conhecimentos sobre HPV!';
+                    icon.textContent = '❓';
+                }
+
+                gameBoard.appendChild(cell);
+            }
+            updatePlayerPositions();
+        }
+
+        function updatePlayerPositions() {
+            document.querySelectorAll('.player-marker').forEach(marker => marker.remove());
+            document.querySelectorAll('.board-cell').forEach(cell => {
+                cell.classList.remove('player-position', 'has-players');
+            });
+
+            Object.keys(gameState.players).forEach(playerId => {
+                const player = gameState.players[playerId];
+                const cell = document.getElementById(`cell-${player.position}`);
+                
+                if (cell) {
+                    cell.classList.add('player-position', 'has-players');
+                    
+                    const marker = document.createElement('div');
+                    marker.className = `player-marker player-${playerId}`;
+                    marker.textContent = playerId;
+                    cell.appendChild(marker);
+                }
+            });
+        }
+
+        // FUNÇÕES DE CONTROLE DE VÍDEO (RESTAURADAS E ATUALIZADAS)
+        function hideIntroVideo() {
+            const videoContainer = document.getElementById('introVideoContainer');
+            const video = document.getElementById('intro-video');
+            
+            if (videoContainer && videoContainer.style.display !== 'none') {
+                video.pause();
+                videoContainer.style.display = 'none';
+            }
+        }
+
+        function showIntroVideo() {
+            const videoContainer = document.getElementById('introVideoContainer');
+            const video = document.getElementById('intro-video');
+            
+            if (videoContainer) {
+                videoContainer.style.display = 'block';
+                video.currentTime = 0;
+                video.play().catch(e => console.log('Autoplay blocked:', e));
+            }
+        }
+
+        async function rollDice() {
+            if (gameState.isRolling || gameState.gameCompleted) return;
+
+            // ESCONDE O VÍDEO NO PRIMEIRO CLIQUE
+            hideIntroVideo();
+
+            gameState.isRolling = true;
+            const dice = document.getElementById('dice');
+            const diceLabel = document.getElementById('diceLabel');
+
+            dice.classList.add('rolling');
+            diceLabel.textContent = 'Girando...';
+
+            const rollResult = Math.floor(Math.random() * 6) + 1;
+
+            setTimeout(async () => {
+                dice.classList.remove('rolling');
+                dice.textContent = rollResult;
+                diceLabel.textContent = `Você tirou ${rollResult}!`;
+
+                await movePlayer(rollResult);
+                gameState.isRolling = false;
+
+                setTimeout(() => {
+                    dice.textContent = '🎯';
+                    const currentLabel = window.elementSdk?.config?.dice_label || defaultConfig.dice_label;
+                    diceLabel.textContent = currentLabel;
+                }, 2000);
+            }, 2000);
+        }
+
+        async function movePlayer(steps) {
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            currentPlayer.position = Math.min(currentPlayer.position + steps, boardSize);
+            updatePlayerPositions();
+            currentPlayer.score += steps * 10;
+            showMessage(`${currentPlayer.name} avançou ${steps} casas! Posição: ${currentPlayer.position}`, 'info');
+
+            if (currentPlayer.position >= boardSize) {
+                gameState.gameCompleted = true;
+                gameState.winner = gameState.currentPlayer;
+                setTimeout(() => showGameComplete(), 1000);
+                return;
+            }
+
+            setTimeout(() => {
+                if (questionCells.includes(currentPlayer.position)) {
+                    const questionIndex = Math.floor(Math.random() * hpvQuestions.length);
+                    showQuestion(hpvQuestions[questionIndex]);
+                    return;
+                } else {
+                    switchPlayer();
+                    updatePlayerStats();
+                }
+            }, 1500);
+
+            updatePlayerStats();
+            await saveGameState();
+        }
+
+        function switchPlayer() {
+            gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+            updateTurnIndicator();
+        }
+
+        function updateTurnIndicator() {
+            const turnIndicator = document.getElementById('turnIndicator');
+            const currentPlayerName = gameState.players[gameState.currentPlayer].name;
+            turnIndicator.textContent = `Vez do ${currentPlayerName}`;
+            
+            document.querySelectorAll('.player-info').forEach(info => info.classList.remove('active'));
+            document.getElementById(`player${gameState.currentPlayer}Info`).classList.add('active');
+        }
+
+        function showQuestion(question) {
+            gameState.currentQuestion = question;
+            showMessage(`❓ ${gameState.players[gameState.currentPlayer].name} caiu numa casa de pergunta!`, 'info');
+            
+            setTimeout(() => {
+                document.getElementById('questionCase').textContent = question.case;
+                document.getElementById('questionText').textContent = question.question;
+                document.getElementById('questionHint').textContent = `💡 Dica: ${question.hint}`;
+                
+                const optionsContainer = document.getElementById('questionOptions');
+                optionsContainer.innerHTML = '';
+                
+                question.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option-btn';
+                    button.textContent = option;
+                    button.onclick = () => selectAnswer(index);
+                    optionsContainer.appendChild(button);
+                });
+                
+                document.getElementById('questionExplanation').style.display = 'none';
+                document.getElementById('closeQuestion').style.display = 'none';
+                document.getElementById('questionModal').style.display = 'flex';
+            }, 1000);
+        }
+
+        function selectAnswer(selectedIndex) {
+            const question = gameState.currentQuestion;
+            const options = document.querySelectorAll('.option-btn');
+            const isCorrect = selectedIndex === question.correct;
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            const questionContent = document.querySelector('.question-content');
+            
+            options.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === question.correct) {
+                    btn.classList.add('correct');
+                } else if (index === selectedIndex && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+            
+            if (!isCorrect) {
+                questionContent.classList.add('shake');
+                setTimeout(() => { questionContent.classList.remove('shake'); }, 600);
+            }
+            
+            const explanationDiv = document.getElementById('questionExplanation');
+            explanationDiv.textContent = question.explanation;
+            explanationDiv.style.display = 'block';
+            document.getElementById('closeQuestion').style.display = 'block';
+            
+            if (isCorrect) {
+                currentPlayer.correctAnswers++;
+                currentPlayer.coins += 10;
+                currentPlayer.score += 100;
+                showRewardAnimation();
+                showMessage(`🎉 ${currentPlayer.name} acertou! Ganhou 10 moedas! 🪙`, 'success');
+            } else {
+                currentPlayer.wrongAnswers++;
+                showExplosion();
+                showMessage(`💥 ${currentPlayer.name} errou! Levou uma bomba! 💣`, 'error');
+            }
+            
+            updatePlayerStats();
+        }
+
+        function closeQuestionModal() {
+            document.getElementById('questionModal').style.display = 'none';
+            document.getElementById('questionExplanation').style.display = 'none';
+            document.getElementById('closeQuestion').style.display = 'none';
+            gameState.currentQuestion = null;
+            
+            if (!gameState.gameCompleted) {
+                switchPlayer();
+                updatePlayerStats();
+            }
+        }
+
+        function showExplosion() {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = '💥';
+            document.body.appendChild(explosion);
+            setTimeout(() => { document.body.removeChild(explosion); }, 1500);
+        }
+
+        function showRewardAnimation() {
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const coin = document.createElement('div');
+                    coin.className = 'reward';
+                    coin.textContent = '🪙';
+                    coin.style.left = Math.random() * window.innerWidth + 'px';
+                    coin.style.top = Math.random() * window.innerHeight + 'px';
+                    document.body.appendChild(coin);
+                    setTimeout(() => { document.body.removeChild(coin); }, 2000);
+                }, i * 200);
+            }
+        }
+
+        function showGameComplete() {
+            const winner = gameState.players[gameState.winner];
+            const loser = gameState.players[gameState.winner === 1 ? 2 : 1];
+            
+            showMessage(`🏆 ${winner.name} VENCEU! 🪙 Moedas: ${winner.coins} vs ${loser.coins} ✅ Acertos: ${winner.correctAnswers} vs ${loser.correctAnswers} 🎯 Posição final: ${winner.position}`, 'success');
+        }
+
+        function showMessage(text, type = 'info') {
+            const messageDiv = document.getElementById('gameMessage');
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
+        }
+
+        function updatePlayerStats() {
+            const player1 = gameState.players[1];
+            document.getElementById('player1Position').textContent = player1.position;
+            document.getElementById('player1Coins').textContent = player1.coins;
+            document.getElementById('player1Correct').textContent = player1.correctAnswers;
+            document.getElementById('player1Wrong').textContent = player1.wrongAnswers;
+            
+            const player2 = gameState.players[2];
+            document.getElementById('player2Position').textContent = player2.position;
+            document.getElementById('player2Coins').textContent = player2.coins;
+            document.getElementById('player2Correct').textContent = player2.correctAnswers;
+            document.getElementById('player2Wrong').textContent = player2.wrongAnswers;
+            
+            updateTurnIndicator();
+        }
+
+        async function saveGameState() {
+            if (!window.dataSdk) return;
+            // Simplified save logic
+            const gameData = {
+                player1_position: gameState.players[1].position,
+                player2_position: gameState.players[2].position,
+                timestamp: new Date().toISOString()
+            };
+            await window.dataSdk.create(gameData);
+        }
+
+        // --- Initialize game ---
+        async function initializeGame() {
+            if (window.dataSdk) {
+                const initResult = await window.dataSdk.init(dataHandler);
+                if (!initResult.isOk) { console.error('Failed to initialize Data SDK:', initResult.error); }
+            }
+
+            if (window.elementSdk) {
+                window.elementSdk.init({ defaultConfig, onConfigChange, mapToCapabilities, mapToEditPanelValues });
+            }
+            
+            initializeBoard();
+            updatePlayerStats();
+            updateTurnIndicator();
+            showMessage('🎮 Jogo da Vida HPV para 2 jogadores! 🔵 Jogador 1 começa! Gire a roleta para jogar!', 'info');
+            
+            // GARANTE QUE O VÍDEO APAREÇA NA INICIALIZAÇÃO
+            showIntroVideo();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+</body>
 </html>
