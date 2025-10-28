@@ -11,6 +11,12 @@
     <script src="/_sdk/data_sdk.js"></script>
     <script src="/_sdk/element_sdk.js"></script>
     <style>
+        /* Variáveis CSS para o Element SDK */
+        :root {
+            --primary-color: #4ecdc4;
+            --secondary-color: #ff6b6b;
+        }
+
         /* BASE AND LAYOUT STYLES */
         * {
             box-sizing: border-box;
@@ -18,7 +24,7 @@
         }
 
         html, body {
-            height: 100%; /* Força 100% de altura para o background gradient */
+            height: 100%;
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -61,31 +67,6 @@
             display: flex;
             flex-direction: column;
         }
-        
-        /* TYPOGRAPHY */
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .game-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            line-height: 1.2;
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
 
         /* VIDEO STYLES */
         .intro-video-container {
@@ -94,7 +75,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: block; /* Visível por padrão na abertura */
+            display: block;
         }
 
         #intro-video {
@@ -102,125 +83,21 @@
             height: auto;
             display: block;
         }
-
-        /* PLAYER INFO */
-        .players-info {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .player-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            flex: 1;
-            min-width: 200px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .player-info.active {
-            border: 3px solid #feca57;
-            box-shadow: 0 0 20px rgba(254, 202, 87, 0.5);
-            transform: scale(1.02);
-        }
         
-        .current-turn {
-            text-align: center;
-            padding: 10px;
-        }
+        /* PLAYER INFO AND DICE (Mantido) */
+        .players-info { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; justify-content: center; }
+        .player-info { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; flex: 1; min-width: 200px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s ease; }
+        .player-info.active { border: 3px solid #feca57; box-shadow: 0 0 20px rgba(254, 202, 87, 0.5); transform: scale(1.02); }
+        .dice-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
 
-        .turn-indicator {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            background: linear-gradient(135deg, #feca57, #ff9ff3);
-            padding: 10px 20px;
-            border-radius: 25px;
-            display: inline-block;
-        }
-
-        .player-name {
-            font-size: 1rem;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .player-stats {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        /* DICE/RULETA */
-        .dice-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
         .dice {
-            width: 120px;
-            height: 120px;
-            background: conic-gradient(
-                #ff6b6b 0deg 60deg,
-                #4ecdc4 60deg 120deg,
-                #45b7d1 120deg 180deg,
-                #96ceb4 180deg 240deg,
-                #feca57 240deg 300deg,
-                #ff9ff3 300deg 360deg
-            );
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-            border: 4px solid white;
+            width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; color: white; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); border: 4px solid white;
+            background: conic-gradient(var(--secondary-color) 0deg 60deg, var(--primary-color) 60deg 120deg, #45b7d1 120deg 180deg, #96ceb4 180deg 240deg, #feca57 240deg 300deg, #ff9ff3 300deg 360deg);
         }
         
-        .dice.rolling {
-            animation: rouletteRoll 2s ease-out;
-        }
+        @keyframes rouletteRoll { 0% { transform: rotate(0deg); } 100% { transform: rotate(1800deg); } }
         
-        @keyframes rouletteRoll {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(1800deg); }
-        }
-
-        .dice:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        /* BOARD */
+        /* TABULEIRO E CASAS ESPECIAIS */
         .game-board {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
@@ -259,83 +136,37 @@
             transition: transform 0.3s ease;
         }
         
-        /* TIPOS DE CASAS ESPECIAIS E PERGUNTAS (Visualização aprimorada) */
-        
-        /* Casa Início/Fim */
-        .cell-start { background: #2ecc71; border-color: #27ae60; color: white; }
-        .cell-finish { background: #9b59b6; border-color: #8e44ad; color: white; }
-
-        /* Casa Pergunta Padrão */
+        /* TIPOS DE CASAS ESPECIAIS (Cores e ícones) */
+        .cell-start { background: linear-gradient(135deg, #2ecc71, #27ae60); border-color: #27ae60; color: white; }
+        .cell-finish { background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #8e44ad; color: white; }
         .cell-question { background: linear-gradient(135deg, #3498db, #5dade2); border-color: #2980b9; color: white; }
-        .cell-question .cell-icon { content: '❓'; }
-        
-        /* Casa Bônus (Moedas/Bônus) */
         .cell-bonus { background: linear-gradient(135deg, #f39c12, #f1c40f); border-color: #e67e22; color: #333; }
-        .cell-bonus .cell-icon { content: '⭐'; }
-
-        /* Casa Desafio (Penalidade/Voltar) */
         .cell-challenge { background: linear-gradient(135deg, #e74c3c, #c0392b); border-color: #c0392b; color: white; }
-        .cell-challenge .cell-icon { content: '⚠️'; }
-
-        /* Casa Mistério (Efeito Aleatório) */
         .cell-mystery { background: linear-gradient(135deg, #34495e, #2c3e50); border-color: #2c3e50; color: white; }
-        .cell-mystery .cell-icon { content: '🎁'; }
         
-        /* EFEITO DE GLOW E MARCADORES */
-        .board-cell.has-players {
-            animation: playerGlow 1.5s infinite alternate;
-        }
-
-        @keyframes playerGlow {
-            0% { box-shadow: 0 0 8px rgba(78, 205, 196, 0.5); }
-            100% { box-shadow: 0 0 15px rgba(78, 205, 196, 0.8); }
-        }
-
-        .player-marker {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 10;
-            transition: all 0.5s ease;
-        }
-
-        .player-marker.player-1 { background: #4ecdc4; top: -5px; left: -5px; }
-        .player-marker.player-2 { background: #ff6b6b; top: -5px; right: -5px; }
-
-        /* QUESTION MODAL (mantido) */
-        .question-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 10px; backdrop-filter: blur(5px);
-        }
-
-        .question-content {
-            background: linear-gradient(135deg, #ffffff, #f8f9fa); border-radius: 20px; padding: 20px; max-width: 90%; width: 100%; max-height: 95%; overflow-y: auto; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4); border: 3px solid #4ecdc4; transform: scale(0.9); animation: modalAppear 0.5s ease forwards;
-        }
+        /* ANIMAÇÕES E MARCADORES */
+        .board-cell.has-players { animation: playerGlow 1.5s infinite alternate; }
+        @keyframes playerGlow { 0% { box-shadow: 0 0 8px rgba(78, 205, 196, 0.5); } 100% { box-shadow: 0 0 15px rgba(78, 205, 196, 0.8); } }
+        .player-marker { position: absolute; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 10; transition: all 0.5s ease; }
+        .player-marker.player-1 { background: var(--primary-color); top: -5px; left: -5px; }
+        .player-marker.player-2 { background: var(--secondary-color); top: -5px; right: -5px; }
         
-        /* [Outros estilos de modal mantidos para brevidade] */
+        /* Question Modal (Mantido) */
+        .question-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 10px; backdrop-filter: blur(5px); }
+        .question-content { background: linear-gradient(135deg, #ffffff, #f8f9fa); border-radius: 20px; padding: 20px; max-width: 90%; width: 100%; max-height: 95%; overflow-y: auto; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4); border: 3px solid var(--primary-color); transform: scale(0.9); animation: modalAppear 0.5s ease forwards; }
         .question-case { background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-style: italic; color: #1565c0; font-size: 0.9rem; border-left: 4px solid #2196f3; }
-        .question-text { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; color: #2c3e50; text-align: center; padding: 12px; border: 2px solid #4ecdc4; border-radius: 10px; }
-        .option-btn { padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; background: linear-gradient(135deg, #ffffff, #f8f9fa); cursor: pointer; transition: all 0.3s ease; font-size: 0.95rem; position: relative; }
+        .question-text { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; color: #2c3e50; text-align: center; padding: 12px; border: 2px solid var(--primary-color); border-radius: 10px; }
         .option-btn.correct { border-color: #4caf50; background: linear-gradient(135deg, #e8f5e8, #c8e6c9); color: #2e7d32; }
         .option-btn.wrong { border-color: #f44336; background: linear-gradient(135deg, #ffebee, #ffcdd2); color: #c62828; }
-        .close-question { background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-top: 15px; width: 100%; }
+        .close-question { background: linear-gradient(135deg, var(--primary-color), #44a08d); color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-top: 15px; width: 100%; }
 
-        /* RESPONSIVE AND MEDIA QUERIES */
+        /* RESPONSIVE AND MEDIA QUERIES (Mantidos) */
         @media (min-width: 768px) {
             .game-title { font-size: 3rem; }
             .subtitle { font-size: 1.3rem; }
             .dice-container { flex-direction: row; justify-content: space-around; padding: 30px; }
             .game-board { grid-template-columns: repeat(10, 1fr); max-height: 400px; }
         }
-
         @media (max-width: 480px) {
             .dice { width: 70px; height: 70px; font-size: 1.8rem; }
             .board-cell { font-size: 0.5rem; }
@@ -347,16 +178,7 @@
 <body>
     <div class="bubbles">
         <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-    </div>
+        </div>
     
     <div class="container">
         <div class="game-card">
@@ -371,7 +193,6 @@
                     Seu navegador não suporta vídeo HTML5.
                 </video>
             </div>
-
             <div class="game-controls">
                 <div class="players-info">
                     <div class="player-info player-1" id="player1Info">
@@ -429,16 +250,14 @@
             secondary_color: "#ff6b6b"
         };
 
+        let config = { ...defaultConfig };
+
         // --- Game state ---
         let gameState = {
             currentPlayer: 1,
             players: {
-                1: {
-                    name: "Jogador 1", position: 1, score: 0, coins: 0, stars: 0, correctAnswers: 0, wrongAnswers: 0, color: "#4ecdc4"
-                },
-                2: {
-                    name: "Jogador 2", position: 1, score: 0, coins: 0, stars: 0, correctAnswers: 0, wrongAnswers: 0, color: "#ff6b6b"
-                }
+                1: { name: "Jogador 1", position: 1, score: 0, coins: 0, stars: 0, correctAnswers: 0, wrongAnswers: 0, color: "#4ecdc4" },
+                2: { name: "Jogador 2", position: 1, score: 0, coins: 0, stars: 0, correctAnswers: 0, wrongAnswers: 0, color: "#ff6b6b" }
             },
             isRolling: false,
             gameCompleted: false,
@@ -446,39 +265,27 @@
             winner: null
         };
 
-        // --- Game data (Questions) ---
+        // --- Game data (Questions and Board Types) ---
         const boardSize = 20;
         
-        // NOVO: Define o tipo de célula para cada casa (excluindo a casa 1 - Start)
-        // 0: Start (Casa 1)
-        // 1: Pergunta Padrão
-        // 2: Bônus (Moedas/Vantagem)
-        // 3: Desafio (Penalidade/Perder Moedas)
-        // 4: Mistério (Aleatório)
+        // NOVO: Define o tipo de célula para cada casa
+        // 0: Início; 1: Pergunta Padrão; 2: Bônus; 3: Desafio; 4: Mistério; 99: Fim
         const cellTypes = [
             0, // Casa 1 (Início)
-            1, 3, 2, 1, 4, 1, 3, 2, 1, 
-            4, 1, 3, 2, 1, 4, 1, 3, 2, 1, // Casar 2 a 20 (Fim é a 20)
+            1, 3, 2, 1, 4, 1, 3, 2, 1, // Casas 2 a 10
+            4, 1, 3, 2, 1, 4, 1, 3, 2, 99 // Casas 11 a 20
         ];
         
         const cellTypeClasses = {
-            0: 'cell-start',
-            1: 'cell-question',
-            2: 'cell-bonus',
-            3: 'cell-challenge',
-            4: 'cell-mystery'
+            0: 'cell-start', 1: 'cell-question', 2: 'cell-bonus', 3: 'cell-challenge', 4: 'cell-mystery', 99: 'cell-finish'
         };
 
         const cellTypeIcons = {
-            0: '🏁',
-            1: '❓',
-            2: '⭐',
-            3: '⚠️',
-            4: '🎁'
+            0: '🏁 INÍCIO', 1: '❓ PERGUNTA', 2: '⭐ BÔNUS', 3: '⚠️ DESAFIO', 4: '🎁 MISTÉRIO', 99: '🏆 FIM'
         };
         
         const hpvQuestions = [
-            // PERGUNTAS INICIAIS (q1-q15)
+            // TODAS AS 25 PERGUNTAS SOLICITADAS SÃO COLOCADAS AQUI
             { id: "q1", case: "Caso de Sofia (16 anos): Sofia notou o surgimento de pequenas 'bolinhas' ou 'verruguinhas' na região genital e está com medo.", question: "Se essas lesões forem realmente verrugas de HPV (Condiloma Acuminado), qual a medida mais importante que Sofia deve tomar imediatamente?", hint: "O diagnóstico correto deve sempre ser feito por um profissional de saúde.", options: [ "A. Comprar uma pomada sem receita na farmácia para fazer o tratamento em casa.", "B. Ignorar, pois verrugas somem sozinhas em adolescentes.", "C. Buscar imediatamente um médico (ginecologista ou urologista) para o diagnóstico correto e iniciar o tratamento das lesões.", "D. Fazer um teste de gravidez, pois verrugas são sinal de alteração hormonal." ], correct: 2, explanation: "É fundamental procurar um profissional de saúde (Ginecologista, Urologista, Proctologista ou Dermatologista) para confirmar o diagnóstico de HPV e iniciar o tratamento adequado das lesões, evitando a progressão e a transmissão." },
             { id: "q2", case: "Pergunta para o jogador:", question: "Qual das afirmações abaixo melhor descreve a relação entre a infecção por HPV e outras IST?", hint: "O comportamento de risco que leva ao HPV expõe a outros agentes.", options: [ "A. Ter HPV torna a pessoa imune a outras IST, como o HIV.", "B. Não há nenhuma relação; são doenças completamente separadas.", "C. A presença de HPV indica que o indivíduo está exposto a comportamentos de risco, o que aumenta a probabilidade de contrair outra IST simultaneamente (coinfecção).", "D. O tratamento do HPV trata automaticamente todas as outras IST." ], correct: 2, explanation: "O HPV, como as outras IST, é transmitido principalmente por contato íntimo desprotegido. Se uma pessoa se infecta com HPV, é um sinal de que ela pode estar vulnerável ou já infectada por outra IST, como HIV, Sífilis ou Hepatites." },
             { id: "q3", case: "Caso de Clara (25 anos): Clara está iniciando o rastreio e pergunta ao médico com que frequência ela precisa fazer o Papanicolau (preventivo) para monitorar o colo do útero.", question: "Qual é o intervalo padrão recomendado no Brasil para a realização do exame Papanicolau, após dois exames anuais consecutivos negativos?", hint: "Papanicolau detecta lesões precocemente, mas não precisa ser anual na maioria dos casos.", options: [ "A. A cada 6 meses (semestralmente).", "B. A cada 3 anos (trienalmente).", "C. A cada 10 anos.", "D. Apenas quando tiver relações sexuais com um novo parceiro." ], correct: 1, explanation: "Após dois resultados anuais normais consecutivos, o Papanicolau deve ser repetido a cada três anos. Essa periodicidade é suficiente para detectar lesões precursoras do câncer do colo do útero a tempo de tratamento." },
@@ -514,14 +321,12 @@
         ];
 
         // --- Data SDK handler (MANTIDO) ---
-        const dataHandler = {
-            onDataChanged(data) {
-                console.log('Game data updated:', data);
-            }
-        };
+        const dataHandler = { onDataChanged(data) { console.log('Game data updated:', data); } };
 
         // --- Element SDK configuration (MANTIDO) ---
-        async function onConfigChange(config) {
+        async function onConfigChange(newConfig) {
+            Object.assign(config, newConfig);
+            
             const gameTitle = document.getElementById('gameTitle');
             const subtitleText = document.getElementById('subtitleText');
             const diceLabel = document.getElementById('diceLabel');
@@ -529,19 +334,23 @@
             if (gameTitle) { gameTitle.textContent = config.game_title || defaultConfig.game_title; }
             if (subtitleText) { subtitleText.textContent = config.subtitle_text || defaultConfig.subtitle_text; }
             if (diceLabel) { diceLabel.textContent = config.dice_label || defaultConfig.dice_label; }
+
+            // Aplica as cores via variáveis CSS
+            if (config.primary_color) { document.documentElement.style.setProperty('--primary-color', config.primary_color); }
+            if (config.secondary_color) { document.documentElement.style.setProperty('--secondary-color', config.secondary_color); }
         }
 
-        function mapToCapabilities(config) {
+        function mapToCapabilities() {
             return {
                 recolorables: [
-                    { get: () => config.primary_color || defaultConfig.primary_color, set: (value) => { if (window.elementSdk) { window.elementSdk.setConfig({ primary_color: value }); } } },
-                    { get: () => config.secondary_color || defaultConfig.secondary_color, set: (value) => { if (window.elementSdk) { window.elementSdk.setConfig({ secondary_color: value }); } } }
+                    { get: () => config.primary_color || defaultConfig.primary_color, set: (value) => { config.primary_color = value; if (window.elementSdk) { window.elementSdk.setConfig({ primary_color: value }); } } },
+                    { get: () => config.secondary_color || defaultConfig.secondary_color, set: (value) => { config.secondary_color = value; if (window.elementSdk) { window.elementSdk.setConfig({ secondary_color: value }); } } }
                 ],
                 borderables: [], fontEditable: undefined, fontSizeable: undefined
             };
         }
 
-        function mapToEditPanelValues(config) {
+        function mapToEditPanelValues() {
             return new Map([
                 ["game_title", config.game_title || defaultConfig.game_title],
                 ["subtitle_text", config.subtitle_text || defaultConfig.subtitle_text],
@@ -561,37 +370,28 @@
                 cell.id = `cell-${i}`;
                 
                 // Determina o tipo e classe da célula
-                const typeIndex = i < cellTypes.length ? cellTypes[i] : 1; // Padrão 'question' se fora do array
-                const cellClass = cellTypeClasses[typeIndex];
-                const cellIcon = cellTypeIcons[typeIndex];
+                const typeIndex = i - 1;
+                const cellType = typeIndex < cellTypes.length ? cellTypes[typeIndex] : 1;
+                const cellClass = cellTypeClasses[cellType];
+                const cellIconText = cellTypeIcons[cellType];
                 
                 cell.classList.add(cellClass);
 
                 const icon = document.createElement('div');
                 icon.className = 'cell-icon';
+                icon.innerHTML = cellIconText.split(' ')[0]; // Pega apenas o ícone
                 
-                // Texto do ícone: "FIM" para a última casa, ícone para as demais
-                if (i === boardSize) {
-                    icon.textContent = '🏆';
-                    cell.classList.add('cell-finish');
-                    cell.classList.remove(cellClass);
-                    cell.classList.remove('special');
-                } else if (i === 1) {
-                    icon.textContent = '🏁';
-                    cell.classList.add('cell-start');
-                    cell.classList.remove(cellClass);
-                    cell.classList.remove('special');
-                } else {
-                    icon.textContent = cellIcon;
+                const label = document.createElement('div');
+                // Se for Início ou Fim, mostra a label inteira; senão, mostra o número
+                label.textContent = i === 1 || i === boardSize ? cellIconText.split(' ').slice(1).join(' ') : i;
+
+                cell.appendChild(icon);
+                cell.appendChild(label);
+                
+                if (cellType !== 0 && cellType !== 99) {
                     cell.classList.add('special');
                 }
 
-
-                const number = document.createElement('div');
-                number.textContent = i;
-
-                cell.appendChild(icon);
-                cell.appendChild(number);
                 gameBoard.appendChild(cell);
             }
             updatePlayerPositions();
@@ -643,7 +443,8 @@
         async function rollDice() {
             if (gameState.isRolling || gameState.gameCompleted) return;
 
-            hideIntroVideo(); // ESCONDE O VÍDEO NO PRIMEIRO CLIQUE
+            // ESCONDE O VÍDEO NO PRIMEIRO CLIQUE
+            hideIntroVideo(); 
 
             gameState.isRolling = true;
             const dice = document.getElementById('dice');
@@ -664,7 +465,7 @@
 
                 setTimeout(() => {
                     dice.textContent = '🎯';
-                    const currentLabel = window.elementSdk?.config?.dice_label || defaultConfig.dice_label;
+                    const currentLabel = config.dice_label || defaultConfig.dice_label;
                     diceLabel.textContent = currentLabel;
                 }, 2000);
             }, 2000);
@@ -688,13 +489,12 @@
             // LÓGICA DE EFEITOS ESPECIAIS E PERGUNTAS
             setTimeout(() => {
                 const cellIndex = currentPlayer.position;
-                const cellType = cellIndex < cellTypes.length ? cellTypes[cellIndex] : 1;
+                const cellType = cellIndex > 0 && cellIndex <= cellTypes.length ? cellTypes[cellIndex - 1] : 1;
                 
-                // Aplica efeito especial antes de mostrar a pergunta
                 handleSpecialEffect(cellType, currentPlayer);
 
-                // Mostra a pergunta se não for a casa inicial/final
-                if (cellType !== 0 && cellIndex !== boardSize) {
+                // Todas as casas, exceto o INÍCIO e FIM, disparam pergunta
+                if (cellType !== 0 && cellType !== 99) {
                     const questionIndex = Math.floor(Math.random() * hpvQuestions.length);
                     showQuestion(hpvQuestions[questionIndex]);
                     return;
@@ -708,31 +508,25 @@
             await saveGameState();
         }
         
-        // NOVO: Função para lidar com os efeitos especiais das casas
+        // FUNÇÃO PARA LIDAR COM OS EFEITOS ESPECIAIS DAS CASAS
         function handleSpecialEffect(type, player) {
-            const messages = {
-                2: `Bônus! ${player.name} ganhou +20 moedas! 🪙`,
-                3: `Desafio! ${player.name} perdeu 10 moedas! 💥`,
-                4: `Mistério! ${player.name} ganhou um giro extra! 🎲`
-            };
-
             switch (type) {
                 case 2: // Bônus
                     player.coins += 20;
                     showRewardAnimation();
-                    showMessage(messages[2], 'success');
+                    showMessage(`Bônus! ${player.name} ganhou +20 moedas! 🪙`, 'success');
                     break;
                 case 3: // Desafio
                     player.coins = Math.max(0, player.coins - 10);
                     showExplosion();
-                    showMessage(messages[3], 'error');
+                    showMessage(`Desafio! ${player.name} perdeu 10 moedas! 💥`, 'error');
                     break;
-                case 4: // Mistério (Exemplo: Ganha um giro extra - não implementado completamente aqui, apenas a mensagem)
-                    showMessage(messages[4], 'info');
-                    // Para simplificar, vamos apenas dar uma pequena vantagem em moedas:
+                case 4: // Mistério
                     player.coins += 5;
+                    showMessage(`Mistério! ${player.name} ganhou +5 moedas e uma dica! 🎁`, 'info');
                     break;
-                // As casas de Pergunta Padrão (tipo 1) e Início/Fim não precisam de efeito extra nesta etapa.
+                default:
+                    break;
             }
         }
 
@@ -756,7 +550,7 @@
             showMessage(`❓ ${gameState.players[gameState.currentPlayer].name} caiu numa casa de pergunta!`, 'info');
             
             setTimeout(() => {
-                document.getElementById('questionCase').textContent = question.case;
+                document.getElementById('questionCase').innerHTML = `<h4>Caso:</h4><p>${question.case}</p>`;
                 document.getElementById('questionText').textContent = question.question;
                 document.getElementById('questionHint').textContent = `💡 Dica: ${question.hint}`;
                 
@@ -799,7 +593,7 @@
             }
             
             const explanationDiv = document.getElementById('questionExplanation');
-            explanationDiv.textContent = question.explanation;
+            explanationDiv.innerHTML = `<h4>Explicação:</h4><p>${question.explanation}</p>`;
             explanationDiv.style.display = 'block';
             document.getElementById('closeQuestion').style.display = 'block';
             
@@ -885,7 +679,6 @@
 
         async function saveGameState() {
             if (!window.dataSdk) return;
-            // Simplified save logic
             const gameData = {
                 player1_position: gameState.players[1].position,
                 player2_position: gameState.players[2].position,
@@ -902,7 +695,17 @@
             }
 
             if (window.elementSdk) {
-                window.elementSdk.init({ defaultConfig, onConfigChange, mapToCapabilities, mapToEditPanelValues });
+                await window.elementSdk.init({
+                    defaultConfig,
+                    onConfigChange,
+                    mapToCapabilities,
+                    mapToEditPanelValues
+                });
+                
+                if (window.elementSdk.config) {
+                    Object.assign(config, window.elementSdk.config);
+                    onConfigChange(config);
+                }
             }
             
             initializeBoard();
